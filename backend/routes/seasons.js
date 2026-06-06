@@ -8,7 +8,7 @@ router.get("/", async(req, res) => {
     res.json(result.rows)
 })
 
-router.get("/", async(req, res) => {
+router.get("/current", async(req, res) => {
     const result = await pool.query('SELECT * FROM season WHERE is_current = true LIMIT 1')
     res.json(result.rows[0])
 })
