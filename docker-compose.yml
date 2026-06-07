@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: squad_manager
+    volumes:
+      - ./backend/db.sql:/docker-entrypoint-initdb.d/init.sql
+  backend:
+    build: ./backend
+    ports: 
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://postgres:password@postgres:5432/squad_manager
+    depends_on: 
+      - postgres
+  frontend:
+    build: .
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    

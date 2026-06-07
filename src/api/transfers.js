@@ -1,11 +1,14 @@
-import { supabase } from '../lib/supabase'
+import { apiFetch } from '../lib/api'
 
 export async function getTransfers(seasonId) {
   return apiFetch(`/api/transfers?seasonId=${seasonId}`)
 }
 
 export async function upsertTransfer(transfer) {
-  return apiFetch(`/api/transfers`)
+  return apiFetch(`/api/transfers`, {
+    method: 'POST',
+    body: JSON.stringify(transfer),
+  })
 }
 
 export async function deleteTransfer(id) {

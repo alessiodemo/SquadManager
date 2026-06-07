@@ -19,11 +19,12 @@ router.get('/:id', async(req, res ) => {
     const match = await pool.query('SELECT * FROM matches WHERE id = $1', [req.params.id])
     const events = await pool.query(
         `SELECT me.*, p.name, p.surname
-         FROM match_events me LEFT JOIN players p ON p.id = me.players_id
+         FROM match_events me LEFT JOIN players p ON p.id = me.player_id
          WHERE me.match_id = $1
          ORDER BY me.minute`,
         [req.params.id]
     )
+    res.json({ match: match.rows[0], events: events.rows })
 })
 
 router.post('/', async(req, res) => {

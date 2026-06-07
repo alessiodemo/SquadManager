@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_APU_URL || 'http://localhost:3000'
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 export async function apiFetch(path, options = {}) {
     const res = await fetch(`${BASE}${path}`, {

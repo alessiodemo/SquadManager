@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase'
+import { apiFetch } from '../lib/api'
 
 export async function getMatches(seasonId) {
   return apiFetch(`/api/matches?seasonId=${seasonId}`)
@@ -16,7 +16,7 @@ export async function upsertMatch(match) {
 }
 
 export async function updateScore(matchId, goalsFor, goalsAgainst) {
-  return apiFetch(`/api/matched/${matchId}`, {
+  return apiFetch(`/api/matches/${matchId}`, {
     method: 'PATCH',
     body: JSON.stringify({ goals_for: goalsFor, goals_against: goalsAgainst }),
   })
@@ -27,7 +27,7 @@ export async function deleteMatch(id) {
 }
 
 export async function addMatchEvent(event) {
-  return apifetch(`/api/matches/${event.match_id}/events`, {
+  return apiFetch(`/api/matches/${event.match_id}/events`, {
     method: 'POST',
     body: JSON.stringify(event),
   })
