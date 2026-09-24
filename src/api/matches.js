@@ -36,3 +36,7 @@ export async function addMatchEvent(event) {
 export async function deleteMatchEvent(id) {
   return apiFetch(`/api/matches/events/${id}`, { method: 'DELETE' })
 }
+
+export async function getMatchContext(matchId) {
+  return apiFetch(`/api/matches/${matchId}/context`)
+}

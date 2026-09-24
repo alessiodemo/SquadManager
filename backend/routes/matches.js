@@ -27,6 +27,34 @@ router.get('/:id', async(req, res ) => {
     res.json({ match: match.rows[0], events: events.rows })
 })
 
+router.get('/:id/context', async(req, res) => {
+    const matchResult = await pool.query(
+        'SELECT * FROM matches WHERE id=$1',
+        [req.params.id]
+    )
+
+    const eventsResult = await pool.query(
+        `SELECT me.*, p.name, p.surname
+         FROM match_events me
+         LEFT JOIN players p ON p.id = me.player_id
+         WHERE me.match_id = $1
+         ORDER BY me.minute`,
+         [req.params.id]
+    )
+
+    const match = matchResult.rows[0]
+
+    res.json({
+    match,
+    events: eventsResult.rows,
+    result: match.goals_for > match.goals_against
+        ? 'win'
+        : match.goals_for === match.goals_against
+            ? 'draw'
+            : 'loss'
+    })
+})
+
 router.post('/', async(req, res) => {
     const { id, season_id, date, opponent, is_home, venue, goals_for, goals_against } = req.body
     const result = await pool.query(
