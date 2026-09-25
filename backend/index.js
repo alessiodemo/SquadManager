@@ -5,6 +5,7 @@ import seasonsRouter from './routes/seasons.js';
 import playersRouter from './routes/players.js';
 import matchesRouter from './routes/matches.js';
 import transfersRouter from './routes/transfers.js';
+import footballDataRouter from './routes/footballData.js';
 
 dotenv.config()
 
@@ -19,6 +20,7 @@ app.use('/api/seasons', seasonsRouter)
 app.use('/api/players', playersRouter)
 app.use('/api/matches', matchesRouter)
 app.use('/api/transfers', transfersRouter)
+app.use('/api/football-data', footballDataRouter)
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
