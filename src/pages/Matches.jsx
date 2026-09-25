@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { getMatches, upsertMatch, deleteMatch, updateScore } from '../api/matches'
+import { getMatches, getMatchContext, upsertMatch, deleteMatch, updateScore } from '../api/matches'
 import { getCurrentSeason } from '../api/seasons'
 import { supabase } from '../lib/supabase'
 import SeasonSelector from '../components/SeasonSelector'
@@ -27,6 +27,8 @@ export default function Matches() {
   const [editingId, setEditingId] = useState(null)
   const [liveId, setLiveId] = useState(null)
   const [liveScore, setLiveScore] = useState({ gf: '', ga: '' })
+  const [context, setContext] = useState(null)
+  const [contextLoading, setContextLoading] = useState(false)
 
   const load = useCallback(async (sid) => {
     if (!sid) return
@@ -113,6 +115,19 @@ export default function Matches() {
     }
   }
 
+  async function handleContext(matchId) {
+    setContextLoading(true)
+
+    try {
+      const data = await getMatchContext(matchId)
+      setContext(data)
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setContextLoading(false)
+    }
+  }
+
   const upcoming = matches.filter((m) => m.goals_for == null).sort((a, b) => new Date(a.date) - new Date(b.date))
   const played = matches.filter((m) => m.goals_for != null).sort((a, b) => new Date(b.date) - new Date(a.date))
 
@@ -182,6 +197,9 @@ export default function Matches() {
                         <span className="font-mono font-bold text-white">{m.goals_for}–{m.goals_against}</span>
                         <button onClick={() => openEdit(m)} className="text-xs text-gray-400 hover:text-white">✏️</button>
                         <button onClick={() => handleDelete(m.id)} className="text-xs text-gray-400 hover:text-red-400">🗑️</button>
+                        <button onClick={() => handleContext(m.id)} className="text-xs text-blue-400 hover:text-blue-300">
+                          Context
+                        </button>
                       </div>
                     </div>
                   )
@@ -194,6 +212,16 @@ export default function Matches() {
             <p className="text-gray-500">Nessuna partita in questa stagione.</p>
           )}
         </>
+      )}
+
+      {contextLoading && (
+        <p className="text-gray-400">Loading Context...</p>
+      )}
+
+      {context && (
+        <pre className="bg-gray-950 text-gray-300 text-xs p-4 rounded-lg overflow-auto">
+          {JSON.stringify(context,null,2)}
+        </pre>
       )}
 
       {showModal && (
