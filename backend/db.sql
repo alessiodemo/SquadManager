@@ -22,6 +22,7 @@ create table if not exists players (
 
 create table if not exists matches (
   id             uuid primary key default gen_random_uuid(),
+  external_id    int,
   season_id      uuid not null references seasons(id) on delete cascade,
   date           date not null,
   opponent       text not null,
@@ -31,6 +32,10 @@ create table if not exists matches (
   goals_against  int check (goals_against >= 0),
   created_at     timestamptz default now()
 );
+
+alter table matches add column if not exists external_id int;
+create unique index if not exists matches_external_id_unique
+  on matches (external_id);
 
 create table if not exists player_stats (
   id            uuid primary key default gen_random_uuid(),

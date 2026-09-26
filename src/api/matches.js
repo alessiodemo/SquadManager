@@ -40,3 +40,14 @@ export async function deleteMatchEvent(id) {
 export async function getMatchContext(matchId) {
   return apiFetch(`/api/matches/${matchId}/context`)
 }
+
+export async function importComptetitionMatches({ season, team, seasonId}) {
+  return apiFetch(`/api/football-data/competitions/SA/import`, {
+    method: 'POST',
+    body: JSON.stringify({
+      season,
+      team,
+      seasonId,
+    }),
+  })
+}

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
-import { getMatches, getMatchContext, upsertMatch, deleteMatch, updateScore } from '../api/matches'
-import { getCurrentSeason } from '../api/seasons'
+import { getMatches, getMatchContext, upsertMatch, deleteMatch, updateScore, importComptetitionMatches } from '../api/matches'
+import { getCurrentSeason, getSeasons } from '../api/seasons'
 import { supabase } from '../lib/supabase'
 import SeasonSelector from '../components/SeasonSelector'
 import Modal from '../components/Modal'
@@ -29,6 +29,12 @@ export default function Matches() {
   const [liveScore, setLiveScore] = useState({ gf: '', ga: '' })
   const [context, setContext] = useState(null)
   const [contextLoading, setContextLoading] = useState(false)
+  const [seasons, setSeasons] = useState([])
+  const [team, setTeam] = useState('')
+
+  const selectedSeason = seasons.find(
+  (season) => season.id === seasonId
+  )
 
   const load = useCallback(async (sid) => {
     if (!sid) return
@@ -44,9 +50,15 @@ export default function Matches() {
   }, [])
 
   useEffect(() => {
-    getCurrentSeason()
-      .then((s) => setSeasonId(s.id))
-      .catch((e) => { console.error(e); setLoading(false) })
+    Promise.all([getCurrentSeason(), getSeasons()])
+      .then(([current, allSeasons]) => {
+        setSeasonId(current.id)
+        setSeasons(allSeasons)
+      })
+      .catch((e) => {
+        console.error(e)
+        setLoading(false)
+      })
   }, [])
 
   useEffect(() => {
@@ -128,6 +140,30 @@ export default function Matches() {
     }
   }
 
+  async function handleImport() {
+
+    if (!selectedSeason) return
+
+    if (!team.trim()) {
+      alert('Inserisci una squadra')
+      return
+    }
+
+    try {
+      const result = await importComptetitionMatches({
+        season: selectedSeason.start_year,
+        team: team.trim(),
+        seasonId: selectedSeason.id,
+      })
+
+      await load(seasonId)
+
+      alert(`Imported ${result.imported} matches`)
+    } catch (error) {
+      alert(error.message)
+    }
+  }
+
   const upcoming = matches.filter((m) => m.goals_for == null).sort((a, b) => new Date(a.date) - new Date(b.date))
   const played = matches.filter((m) => m.goals_for != null).sort((a, b) => new Date(b.date) - new Date(a.date))
 
@@ -137,6 +173,15 @@ export default function Matches() {
         <h2 className="text-2xl font-bold text-white">Partite</h2>
         <div className="flex gap-3">
           <SeasonSelector value={seasonId} onChange={setSeasonId} />
+          <input
+            value={team}
+            onChange={(e) => setTeam(e.target.value)}
+            placeholder="Squadra, es. AC Milan"
+            className="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-1.5"
+          />
+          <button onClick={handleImport}>
+            Update Data
+          </button>
           <button onClick={openNew} className="bg-green-700 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             + Aggiungi
           </button>
