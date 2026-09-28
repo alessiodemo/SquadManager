@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { pool } from '../db.js'
-import { getCompetitionMatches, normalizeMatch } from '../services/footballData.js'
+import { getCompetitionMatches, getTable, normalizeMatch } from '../services/footballData.js'
 
 const router = Router()
 
@@ -71,6 +71,95 @@ router.post('/competitions/:code/import', async (req, res) => {
     res.json({ imported: matches.length, season, competition: data.competition })
   } catch (error) {
     res.status(502).json({ error: error.message })
+  }
+})
+
+router.post('/competitions/:code/standings/import', async (req, res) => {
+  const { code } = req.params
+  const { season, seasonId } = req.body
+
+  if (!season || !seasonId) {
+    return res.status(400).json({
+      error: 'season and seasonId body parameters are required',
+    })
+  }
+
+  let data
+  try {
+    data = await getTable(code, season)
+  } catch (error) {
+    return res.status(502).json({ error: error.message })
+  }
+
+  if (!Array.isArray(data.standings)) {
+    return res.status(502).json({ error: 'Unexpected standings response from football-data.org' })
+  }
+
+  const rows = data.standings.flatMap((standing) =>
+    (standing.table ?? []).map((row) => ({
+      type: standing.type,
+      teamExternalId: row.team.id,
+      teamName: row.team.name,
+      position: row.position,
+      matchPlayed: row.playedGames,
+      win: row.won,
+      draw: row.draw,
+      lose: row.lost,
+      goalScored: row.goalsFor,
+      goalConceded: row.goalsAgainst,
+      goalDifference: row.goalDifference,
+      points: row.points,
+    })),
+  )
+
+  let client
+  try {
+    client = await pool.connect()
+    await client.query('BEGIN')
+
+    for (const row of rows) {
+      await client.query(
+        `INSERT INTO season_table
+          (season_id, competition_code, type, team_external_id, team_name, position,
+           match_played, win, draw, lose, goal_scored, goal_conceded, goal_difference, points)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+         ON CONFLICT (season_id, competition_code, type, team_external_id) DO UPDATE SET
+           team_name = EXCLUDED.team_name,
+           position = EXCLUDED.position,
+           match_played = EXCLUDED.match_played,
+           win = EXCLUDED.win,
+           draw = EXCLUDED.draw,
+           lose = EXCLUDED.lose,
+           goal_scored = EXCLUDED.goal_scored,
+           goal_conceded = EXCLUDED.goal_conceded,
+           goal_difference = EXCLUDED.goal_difference,
+           points = EXCLUDED.points`,
+        [
+          seasonId,
+          code,
+          row.type,
+          row.teamExternalId,
+          row.teamName,
+          row.position,
+          row.matchPlayed,
+          row.win,
+          row.draw,
+          row.lose,
+          row.goalScored,
+          row.goalConceded,
+          row.goalDifference,
+          row.points,
+        ],
+      )
+    }
+
+    await client.query('COMMIT')
+    return res.json({ imported: rows.length, season, competition: data.competition })
+  } catch (error) {
+    if (client) await client.query('ROLLBACK').catch(() => {})
+    return res.status(500).json({ error: error.message })
+  } finally {
+    client?.release()
   }
 })
 

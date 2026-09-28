@@ -24,6 +24,30 @@ export async function getCompetitionMatches(competitionCode, season) {
   return response.json()
 }
 
+export async function getTable(code, season) {
+  const token = process.env.FOOTBALL_DATA_TOKEN
+
+  if (!token) {
+    throw new Error('FOOTBALL_DATA_TOKEN is not configured')
+  }
+
+  const params = new URLSearchParams()
+  if (season) params.set('season', season)
+
+  const query = params.toString()
+  const url = `${BASE_URL}/competitions/${code}/standings${query ? `?${query}` : ''}`
+  const response = await fetch(url, {
+    headers: { 'X-Auth-Token': token },
+  })
+
+  if (!response.ok) {
+    const details = await response.text()
+    throw new Error(`football-data.org returned ${response.status}: ${details}`)
+  }
+
+  return response.json()
+}
+
 export function normalizeMatch(match, teamName, seasonId) {
   const isHome = match.homeTeam.name === teamName
   const isAway = match.awayTeam.name === teamName

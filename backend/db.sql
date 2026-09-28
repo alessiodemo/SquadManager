@@ -76,6 +76,7 @@ create table if not exists season_table (
   competition_code text not null,
   type text not null check (type in ('TOTAL','HOME','AWAY')),
   team_external_id integer not null,
+  team_name text not null,
   position int not null,
   match_played int not null,
   win int,
