@@ -163,4 +163,28 @@ router.post('/competitions/:code/standings/import', async (req, res) => {
   }
 })
 
+router.get('/competitions/:code/standings', async (req, res) => {
+  const { code } = req.params
+  const { seasonId } = req.query
+
+  if (!seasonId) {
+    return res.status(400).json({ error: 'seasonId required' })
+  }
+
+  const result = await pool.query(`
+    SELECT *
+    FROM season_table
+    WHERE season_id = $1 AND competition_code = $2
+    ORDER BY
+      CASE type
+        WHEN 'TOTAL' THEN 1
+        WHEN 'HOME' THEN 2
+        WHEN 'AWAY' THEN 3
+      END,
+      position  
+      `, [seasonId, code])
+
+      res.json(result.rows)
+})
+
 export default router

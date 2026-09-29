@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { getMatches } from '../api/matches'
+import { getMatches, getStandings } from '../api/matches'
 import { getCurrentSeason } from '../api/seasons'
 import SeasonSelector from '../components/SeasonSelector'
+import { importStandings } from '../api/standings'
 
 function computeStandings(matches) {
   const table = {}
@@ -69,15 +70,42 @@ export default function Standings() {
     if (!sid) return
     setLoading(true)
     try {
-      const data = await getMatches(sid)
-      setMatches(data)
-      setRows(computeStandings(data))
+      const standings = await getStandings(sid)
+      //const data = await getMatches(sid)
+      //setMatches(data)
+      setRows(
+        standings        
+            .filter((row) => row.type === 'TOTAL')
+            .sort((a, b) => a.position - b.position)
+            .map((row) => ({
+              name: row.team_name,
+              played: Number(row.match_played),
+              won: Number(row.win),
+              drawn: Number(row.draw),
+              lost: Number(row.lose),
+              gf: Number(row.goal_scored),
+              ga: Number(row.goal_conceded),
+              points: Number(row.points),
+            }))
+        )
     } catch (e) {
       console.error(e)
     } finally {
       setLoading(false)
     }
   }
+
+  async function handleImportStandings() {
+  const season = await getCurrentSeason()
+  const result = await importStandings({
+    season: season.start_year,
+    seasonId: season.id,
+  })
+
+  console.log(result)
+}
+
+
 
   useEffect(() => {
     getCurrentSeason()
@@ -94,6 +122,9 @@ export default function Standings() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-white">Classifica</h2>
         <SeasonSelector value={seasonId} onChange={setSeasonId} />
+        <button onClick={handleImportStandings}>
+          Import Standings
+        </button>
       </div>
 
       {loading ? (

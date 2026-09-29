@@ -51,3 +51,7 @@ export async function importComptetitionMatches({ season, team, seasonId}) {
     }),
   })
 }
+
+export async function getStandings(seasonId, competitionCode='SA') {
+  return apiFetch(`/api/football-data/competitions/${competitionCode}/standings?seasonId=${seasonId}`)
+}
