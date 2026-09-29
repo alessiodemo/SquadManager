@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getMatches, getStandings } from '../api/matches'
-import { getCurrentSeason } from '../api/seasons'
+import { getCurrentSeason, getSeasons, upsertSeason } from '../api/seasons'
 import SeasonSelector from '../components/SeasonSelector'
 import { importStandings } from '../api/standings'
 
@@ -65,6 +65,8 @@ export default function Standings() {
   const [seasonId, setSeasonId] = useState(null)
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
+  const [importYear, setImportYear] = useState('')
+  const [importMessage, setImportMessage] = useState('')
 
   async function load(sid) {
     if (!sid) return
@@ -96,14 +98,43 @@ export default function Standings() {
   }
 
   async function handleImportStandings() {
-  const season = await getCurrentSeason()
-  const result = await importStandings({
-    season: season.start_year,
-    seasonId: season.id,
-  })
+    if(!importYear){
+      setImportMessage('Inserisci l anno iniziale della stagione.')
+      return
+    }
+    setImportMessage('Import...')
 
-  console.log(result)
-}
+    const year = Number(importYear)
+
+    try {
+      const seasons = await getSeasons()
+      let season = seasons.find((item) => Number(item.start_year) === year)
+
+      if (!season) {
+        season = await upsertSeason({
+          name: `${year}/${String(year+1).slice(-2)}`,
+          start_year: year,
+          is_current: false,
+        })
+      }
+
+      const result = await importStandings({
+        season: year,
+        seasonId: season.id,
+      })
+
+      if (season.id === seasonId) {
+        await load(season.id)
+      } else {
+        setSeasonId(season.id)
+      }
+
+      setImportMessage(`Import completato: ${result.imported} righe per la stagione ${year}/${String(year + 1).slice(-2)}.`)
+      console.log(result)
+    } catch (error) {
+      setImportMessage(`Errore durante l’import: ${error.message}`)
+    }
+  } 
 
 
 
@@ -119,13 +150,28 @@ export default function Standings() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-bold text-white">Classifica</h2>
         <SeasonSelector value={seasonId} onChange={setSeasonId} />
         <button onClick={handleImportStandings}>
           Import Standings
         </button>
+        <input
+          className="w-48 shrink-0 rounded-md border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-white placeholder:text-gray-400"
+          type="number"
+          min="2000"
+          max={new Date().getFullYear()}
+          value={importYear}
+          onChange={(e) => setImportYear(e.target.value)}
+          placeholder="Start Year, e.g. 2024"
+          aria-label="Season's start year"
+        />
       </div>
+      {importMessage && (
+        <p role="status" className="text-sm text-gray-300">
+          {importMessage}
+        </p>
+      )}
 
       {loading ? (
         <p className="text-gray-400">Caricamento...</p>

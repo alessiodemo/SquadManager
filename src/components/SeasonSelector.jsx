@@ -6,7 +6,7 @@ export default function SeasonSelector({ value, onChange }) {
 
   useEffect(() => {
     getSeasons().then(setSeasons).catch(console.error)
-  }, [])
+  }, [value])
 
   return (
     <select
