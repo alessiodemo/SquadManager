@@ -23,6 +23,7 @@ export default function Market() {
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState(null)
+  const [banner, setBanner] = useState(null)
 
   async function load(sid) {
     setLoading(true)
@@ -46,12 +47,14 @@ export default function Market() {
   }, [seasonId])
 
   function openNew() {
+    setBanner(null)
     setForm({ ...emptyForm, season_id: seasonId })
     setEditingId(null)
     setShowModal(true)
   }
 
   function openEdit(t) {
+    setBanner(null)
     setForm({
       player_id: t.player_id, type: t.type,
       transfer_date: t.transfer_date, fee: t.fee ?? '',
@@ -76,16 +79,22 @@ export default function Market() {
     try {
       await upsertTransfer(payload)
       setShowModal(false)
+      setBanner({ type: 'success', text: editingId ? 'Trasferimento aggiornato.' : 'Trasferimento aggiunto.' })
       load(seasonId)
     } catch (e) {
-      alert(e.message)
+      setBanner({ type: 'error', text: e.message || 'Impossibile salvare il trasferimento.' })
     }
   }
 
   async function handleDelete(id) {
     if (!confirm('Eliminare questo trasferimento?')) return
-    await deleteTransfer(id)
-    load(seasonId)
+    try {
+      await deleteTransfer(id)
+      setBanner({ type: 'success', text: 'Trasferimento eliminato.' })
+      load(seasonId)
+    } catch (e) {
+      setBanner({ type: 'error', text: e.message || 'Impossibile eliminare il trasferimento.' })
+    }
   }
 
   const ins = transfers.filter((t) => t.type === 'in')
@@ -105,6 +114,12 @@ export default function Market() {
           </button>
         </div>
       </div>
+
+      {banner && (
+        <div className={`rounded-lg border px-3 py-2 text-sm ${banner.type === 'success' ? 'bg-green-900/30 border-green-700 text-green-200' : 'bg-red-900/30 border-red-700 text-red-200'}`}>
+          {banner.text}
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">

@@ -45,23 +45,52 @@ import { pool } from '../db.js';
               return res.status(400).json({ error: 'seasonId is required'})
        }
 
-       let client = await pool.connect()
-       await client.query('BEGIN')
+       let client
+       try{
 
-       const result = await pool.query(
-              `INSERT INTO players (id, name, surname, role, nationality, birth_date)
-              VALUES (COALESCE($1, gen_random_uuid()), $2, $3, $4, $5, $6) ON CONFLICT (id) DO UPDATE SET name=$2, surname=$3, role=$4, nationality=$5, birth_date=$6
-              RETURNING *`, [id || null, name, surname, role, nationality, birth_date])
-       res.json(result.rows[0])
+              client = await pool.connect()
+              await client.query('BEGIN')
+
+              const result = await client.query(
+                     `INSERT INTO players (id, name, surname, role, nationality, birth_date)
+                     VALUES (COALESCE($1, gen_random_uuid()), $2, $3, $4, $5, $6)
+                     ON CONFLICT (id) DO UPDATE 
+                     SET name=$2, surname=$3, role=$4, nationality=$5, birth_date=$6
+                     RETURNING *`,
+                     [id || null, name, surname, role, nationality, birth_date])
+
+                     const player = result.rows[0]
+
+              await client.query(
+                     `INSERT INTO season_players (season_id, player_id)
+                     VALUES ($1, $2)
+                     ON CONFLICT DO NOTHING`,
+                     [seasonId, player.id],
+              )
+
+              await client.query('COMMIT')
+              res.json(player)
+       } catch (error) {
+              if (client) await client.query('ROLLBACK').catch(() => {})
+              res.status(500).json({ error: error.message })
+       } finally {
+              client?.release()
+       }
  })
 
  router.delete("/:id", async(req, res) => {
-       const { id } = req.params.id;
-       const result = await pool.query(`
-              DELETE *
-              FROM players
-              WHERE id = $1`, [id])
-       res.json({success: true})
+       const { id } = req.params
+
+       try {
+              await pool.query(
+                     `DELETE FROM players
+                      WHERE id = $1`,
+                     [id],
+              )
+              res.json({ success: true })
+       } catch (error) {
+              res.status(500).json({ error: error.message })
+       }
  })
 
  export default router

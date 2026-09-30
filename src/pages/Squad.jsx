@@ -22,6 +22,7 @@ export default function Squad() {
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState(null)
   const [filter, setFilter] = useState('')
+  const [banner, setBanner] = useState(null)
 
   async function load(sid) {
     if (!sid) return
@@ -57,12 +58,14 @@ export default function Squad() {
   }, [seasonId])
 
   function openNew() {
+    setBanner(null)
     setForm(emptyForm)
     setEditingId(null)
     setShowModal(true)
   }
 
   function openEdit(p) {
+    setBanner(null)
     setForm({ name: p.name, surname: p.surname, role: p.role, nationality: p.nationality ?? '', birth_date: p.birth_date ?? '' })
     setEditingId(p.id)
     setShowModal(true)
@@ -81,16 +84,22 @@ export default function Squad() {
     try {
       await upsertPlayer(payload)
       setShowModal(false)
+      setBanner({ type: 'success', text: editingId ? 'Giocatore aggiornato.' : 'Giocatore aggiunto alla rosa.' })
       load(seasonId)
     } catch (e) {
-      alert(e.message)
+      setBanner({ type: 'error', text: e.message || 'Impossibile salvare il giocatore.' })
     }
   }
 
   async function handleDelete(id) {
     if (!confirm('Eliminare questo giocatore?')) return
-    await deletePlayer(id)
-    load(seasonId)
+    try {
+      await deletePlayer(id)
+      setBanner({ type: 'success', text: 'Giocatore eliminato.' })
+      load(seasonId)
+    } catch (e) {
+      setBanner({ type: 'error', text: e.message || 'Impossibile eliminare il giocatore.' })
+    }
   }
 
   const filtered = players
@@ -111,6 +120,12 @@ export default function Squad() {
           </button>
         </div>
       </div>
+
+      {banner && (
+        <div className={`rounded-lg border px-3 py-2 text-sm ${banner.type === 'success' ? 'bg-green-900/30 border-green-700 text-green-200' : 'bg-red-900/30 border-red-700 text-red-200'}`}>
+          {banner.text}
+        </div>
+      )}
 
       <input
         value={filter}
