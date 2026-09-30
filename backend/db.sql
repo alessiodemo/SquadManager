@@ -20,6 +20,12 @@ create table if not exists players (
   created_at   timestamptz default now()
 );
 
+CREATE TABLE IF NOT EXISTS season_players (
+  season_id uuid NOT NULL REFERENCES seasons(id) ON DELETE CASCADE,
+  player_id uuid NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+  PRIMARY KEY (season_id, player_id)
+);
+
 create table if not exists matches (
   id             uuid primary key default gen_random_uuid(),
   external_id    int,

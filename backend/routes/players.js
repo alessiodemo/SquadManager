@@ -10,15 +10,44 @@ import { pool } from '../db.js';
 
  router.get("/squad", async(req, res) => {
        const { seasonId } = req.query
+       if(!seasonId) {
+              return res.status(400).json({error: 'seasonId is required'})
+       }
+
        const result = await pool.query(
-              `SELECT p.*
-               FROM players p LEFT JOIN player_stats ps ON ps.player_id = p.id AND ps.season_id = $1
-               ORDER BY p.surname`, [seasonId])
+              `SELECT p.*,
+                     COALESCE(
+                     json_agg(json_build_object(
+                            'appearances', ps.appearances,
+                            'goals', ps.goals,
+                            'assists', ps.assists,
+                            'yellow_cards', ps.yellow_cards,
+                            'red_cards', ps.red_cards
+                     )) FILTER (WHERE ps.id IS NOT NULL),
+                     '[]'::json
+                     ) AS player_stats
+              FROM season_players sp
+              JOIN players p ON p.id = sp.player_id
+              LEFT JOIN player_stats ps
+              ON ps.player_id = p.id AND ps.season_id = sp.season_id
+              WHERE sp.season_id = $1
+              GROUP BY p.id
+              ORDER BY p.surname`,
+              [seasonId],
+              )
        res.json(result.rows)
  })
 
  router.post("/", async(req, res) => {
-       const { id, name, surname, role, nationality, birth_date } = req.body
+       const { id, name, surname, role, nationality, birth_date,seasonId } = req.body
+
+       if(!seasonId) {
+              return res.status(400).json({ error: 'seasonId is required'})
+       }
+
+       let client = await pool.connect()
+       await client.query('BEGIN')
+
        const result = await pool.query(
               `INSERT INTO players (id, name, surname, role, nationality, birth_date)
               VALUES (COALESCE($1, gen_random_uuid()), $2, $3, $4, $5, $6) ON CONFLICT (id) DO UPDATE SET name=$2, surname=$3, role=$4, nationality=$5, birth_date=$6

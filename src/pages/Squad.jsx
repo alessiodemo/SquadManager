@@ -76,6 +76,7 @@ export default function Squad() {
       role: form.role,
       nationality: form.nationality || null,
       birth_date: form.birth_date || null,
+      seasonId,
     }
     try {
       await upsertPlayer(payload)
