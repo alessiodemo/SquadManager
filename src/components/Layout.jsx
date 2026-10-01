@@ -1,4 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { useSeason } from '../context/seasonContext'
+import SeasonSelector from './SeasonSelector'
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: '⚽' },
@@ -9,11 +11,15 @@ const navItems = [
 ]
 
 export default function Layout() {
+  const { seasonId, setSeasonId } = useSeason()
   return (
     <div className="flex min-h-screen">
       <aside className="w-56 bg-gray-900 border-r border-gray-800 flex flex-col">
         <div className="p-4 border-b border-gray-800">
           <h1 className="text-lg font-bold text-white">Squad Manager</h1>
+        </div>
+        <div>
+          <SeasonSelector value={seasonId} onChange={setSeasonId} />
         </div>
         <nav className="flex-1 p-3 space-y-1">
           {navItems.map(({ to, label, icon }) => (

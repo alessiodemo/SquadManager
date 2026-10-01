@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
 import { getMatches, getMatchContext, upsertMatch, deleteMatch, updateScore, importComptetitionMatches } from '../api/matches'
-import { getCurrentSeason, getSeasons } from '../api/seasons'
+import { getSeasons } from '../api/seasons'
 import { supabase } from '../lib/supabase'
-import SeasonSelector from '../components/SeasonSelector'
 import Modal from '../components/Modal'
 import Badge from '../components/Badge'
+import { useSeason } from '../context/seasonContext'
 
 function matchResult(m) {
   if (m.goals_for == null) return null
@@ -20,7 +20,7 @@ const emptyForm = {
 
 export default function Matches() {
   const [matches, setMatches] = useState([])
-  const [seasonId, setSeasonId] = useState(null)
+  const { seasonId } = useSeason()
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState(emptyForm)
@@ -50,15 +50,7 @@ export default function Matches() {
   }, [])
 
   useEffect(() => {
-    Promise.all([getCurrentSeason(), getSeasons()])
-      .then(([current, allSeasons]) => {
-        setSeasonId(current.id)
-        setSeasons(allSeasons)
-      })
-      .catch((e) => {
-        console.error(e)
-        setLoading(false)
-      })
+    getSeasons().then(setSeasons).catch(console.error)
   }, [])
 
   useEffect(() => {
@@ -172,7 +164,6 @@ export default function Matches() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-white">Partite</h2>
         <div className="flex gap-3">
-          <SeasonSelector value={seasonId} onChange={setSeasonId} />
           <input
             value={team}
             onChange={(e) => setTeam(e.target.value)}

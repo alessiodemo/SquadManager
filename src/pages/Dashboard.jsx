@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { getCurrentSeason } from '../api/seasons'
+import { getSeasons } from '../api/seasons'
+import { useSeason } from '../context/seasonContext'
 import { getMatches } from '../api/matches'
 import StatCard from '../components/StatCard'
 import Badge from '../components/Badge'
@@ -16,16 +17,21 @@ function matchResultLabel(r) {
 }
 
 export default function Dashboard() {
-  const [season, setSeason] = useState(null)
+  const { seasonId } = useSeason()
+  const [seasons, setSeasons] = useState([])
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    getSeasons().then(setSeasons).catch(console.error)
+  }, [])
+
+  useEffect(() => {
     async function load() {
       try {
-        const s = await getCurrentSeason()
-        setSeason(s)
-        const m = await getMatches(s.id)
+        if (!seasonId) return
+        setLoading(true)
+        const m = await getMatches(seasonId)
         setMatches(m)
       } catch (e) {
         console.error(e)
@@ -34,7 +40,7 @@ export default function Dashboard() {
       }
     }
     load()
-  }, [])
+  }, [seasonId])
 
   const played = matches.filter((m) => m.goals_for != null)
   const wins = played.filter((m) => m.goals_for > m.goals_against).length
@@ -47,6 +53,7 @@ export default function Dashboard() {
   const upcoming = matches.filter((m) => m.goals_for == null).sort((a, b) => new Date(a.date) - new Date(b.date))
   const nextMatch = upcoming[0] ?? null
   const recentMatches = [...played].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
+  const season = seasons.find((item) => item.id === seasonId)
 
   if (loading) return <p className="text-gray-400">Caricamento...</p>
 

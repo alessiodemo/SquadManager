@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { getTransfers, upsertTransfer, deleteTransfer } from '../api/transfers'
 import { getPlayers } from '../api/players'
-import { getCurrentSeason } from '../api/seasons'
-import SeasonSelector from '../components/SeasonSelector'
 import Modal from '../components/Modal'
 import Badge from '../components/Badge'
+import { useSeason } from '../context/seasonContext'
 
 const emptyForm = {
   player_id: '', type: 'in', transfer_date: '', fee: '', club: '', notes: '', season_id: '',
@@ -18,14 +17,18 @@ function formatFee(fee) {
 export default function Market() {
   const [transfers, setTransfers] = useState([])
   const [players, setPlayers] = useState([])
-  const [seasonId, setSeasonId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState(null)
   const [banner, setBanner] = useState(null)
 
+  const { seasonId, setSeasonId } = useSeason()
+
   async function load(sid) {
+
+    if (!sid) return
+    
     setLoading(true)
     try {
       const [t, p] = await Promise.all([getTransfers(sid), getPlayers()])
@@ -37,10 +40,6 @@ export default function Market() {
       setLoading(false)
     }
   }
-
-  useEffect(() => {
-    getCurrentSeason().then((s) => setSeasonId(s.id)).catch(console.error)
-  }, [])
 
   useEffect(() => {
     load(seasonId)
@@ -108,7 +107,6 @@ export default function Market() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-white">Mercato</h2>
         <div className="flex gap-3">
-          <SeasonSelector value={seasonId} onChange={setSeasonId} />
           <button onClick={openNew} className="bg-green-700 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             + Aggiungi
           </button>

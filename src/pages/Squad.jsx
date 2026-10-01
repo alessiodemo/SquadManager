@@ -3,9 +3,8 @@ import { getSquadWithStats, importFootballDataSquad } from '../api/players'
 import { getSeasons } from '../api/seasons'
 import { upsertPlayer, deletePlayer } from '../api/players'
 import { supabase } from '../lib/supabase'
-import { getCurrentSeason } from '../api/seasons'
-import SeasonSelector from '../components/SeasonSelector'
 import Modal from '../components/Modal'
+import { useSeason } from '../context/seasonContext'
 
 const ROLES = ['POR', 'DIF', 'CEN', 'ALA', 'ATT']
 
@@ -17,7 +16,6 @@ const roleOrder = { POR: 0, DIF: 1, CEN: 2, ALA: 3, ATT: 4 }
 
 export default function Squad() {
   const [players, setPlayers] = useState([])
-  const [seasonId, setSeasonId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState(emptyForm)
@@ -25,6 +23,8 @@ export default function Squad() {
   const [filter, setFilter] = useState('')
   const [banner, setBanner] = useState(null)
   const [importing, setImporting] = useState(false)
+  
+  const { seasonId } = useSeason()
 
   async function load(sid) {
     if (!sid) return
@@ -39,11 +39,7 @@ export default function Squad() {
     }
   }
 
-  useEffect(() => {
-    getCurrentSeason()
-      .then((s) => setSeasonId(s.id))
-      .catch((e) => { console.error(e); setLoading(false) })
-  }, [])
+
 
   useEffect(() => {
     if (seasonId) load(seasonId)
@@ -128,13 +124,6 @@ export default function Squad() {
     } catch (e) {
       setBanner({ type: 'error', text: e.message || 'Impossibile eliminare il giocatore.' })
     }
-    try {
-      await deletePlayer(id)
-      setBanner({ type: 'success', text: 'Giocatore eliminato.' })
-      load(seasonId)
-    } catch (e) {
-      setBanner({ type: 'error', text: e.message || 'Impossibile eliminare il giocatore.' })
-    }
   }
 
   const filtered = players
@@ -149,7 +138,6 @@ export default function Squad() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-bold text-white">Rosa</h2>
         <div className="flex flex-wrap gap-3">
-          <SeasonSelector value={seasonId} onChange={setSeasonId} />
           <button onClick={handleImportSquad} disabled={!seasonId || importing} className="border border-gray-600 hover:bg-gray-800 disabled:opacity-50 text-gray-200 text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             {importing ? 'Importazione...' : 'Importa rosa AC Milan'}
           </button>

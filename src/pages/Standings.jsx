@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { getMatches, getStandings } from '../api/matches'
-import { getCurrentSeason, getSeasons, upsertSeason } from '../api/seasons'
-import SeasonSelector from '../components/SeasonSelector'
+import { getSeasons, upsertSeason } from '../api/seasons'
 import { importStandings } from '../api/standings'
+import { useSeason } from '../context/seasonContext'
 
 function computeStandings(matches) {
   const table = {}
@@ -62,11 +62,12 @@ const formColor = { W: 'bg-green-600', D: 'bg-yellow-600', L: 'bg-red-600' }
 
 export default function Standings() {
   const [rows, setRows] = useState([])
-  const [seasonId, setSeasonId] = useState(null)
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
   const [importYear, setImportYear] = useState('')
   const [importMessage, setImportMessage] = useState('')
+  const { seasonId, setSeasonId } = useSeason()
+
 
   async function load(sid) {
     if (!sid) return
@@ -136,14 +137,6 @@ export default function Standings() {
     }
   } 
 
-
-
-  useEffect(() => {
-    getCurrentSeason()
-      .then((s) => setSeasonId(s.id))
-      .catch((e) => { console.error(e); setLoading(false) })
-  }, [])
-
   useEffect(() => {
     if (seasonId) load(seasonId)
   }, [seasonId])
@@ -152,7 +145,6 @@ export default function Standings() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-bold text-white">Classifica</h2>
-        <SeasonSelector value={seasonId} onChange={setSeasonId} />
         <button onClick={handleImportStandings}>
           Import Standings
         </button>
