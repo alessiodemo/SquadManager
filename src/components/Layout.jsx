@@ -1,15 +1,14 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Sidebar } from 'flowbite-react'
-import { SidebarItem, SidebarItemGroup, SidebarItems } from 'flowbite-react'
+import { Sidebar, SidebarItem, SidebarItemGroup, SidebarItems } from 'flowbite-react'
 import { useSeason } from '../context/seasonContext'
 import SeasonSelector from './SeasonSelector'
 
 const navItems = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/partite', label: 'Partite' },
-  { to: '/rosa', label: 'Rosa' },
-  { to: '/classifica', label: 'Classifica' },
-  { to: '/mercato', label: 'Mercato' },
+  { to: '/', label: 'Dashboard', icon: '⚽' },
+  { to: '/partite', label: 'Partite', icon: '📅' },
+  { to: '/rosa', label: 'Rosa', icon: '👥' },
+  { to: '/classifica', label: 'Classifica', icon: '🏆' },
+  { to: '/mercato', label: 'Mercato', icon: '💰' },
 ]
 
 export default function Layout() {
@@ -35,7 +34,7 @@ export default function Layout() {
           </div>
           <SidebarItems className="flex-1 px-3 py-5">
             <SidebarItemGroup className="mt-0 space-y-1 border-0 pt-0">
-              {navItems.map(({ to, label }) => {
+              {navItems.map(({ to, label, icon }) => {
                 const active = to === '/' ? pathname === '/' : pathname.startsWith(to)
 
                 return (
@@ -50,7 +49,10 @@ export default function Layout() {
                         : 'text-gray-400 hover:bg-gray-800/70 hover:text-gray-100'
                     }`}
                   >
-                    {label}
+                    <>
+                      <span aria-hidden="true" className="mr-3 shrink-0">{icon}</span>
+                      {label}
+                    </>
                   </SidebarItem>
                 )
               })}

@@ -4,6 +4,7 @@ import { useSeason } from '../context/seasonContext'
 import { getMatches } from '../api/matches'
 import StatCard from '../components/StatCard'
 import Badge from '../components/Badge'
+import MatchVenueIcon from '../components/MatchVenueIcon'
 
 function matchResult(m) {
   if (m.goals_for == null) return null
@@ -79,8 +80,9 @@ export default function Dashboard() {
         {nextMatch && (
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <p className="text-xs text-gray-400 uppercase tracking-wide mb-3">Prossima partita</p>
-            <p className="font-semibold text-white text-lg">
-              {nextMatch.is_home ? 'vs' : '@'} {nextMatch.opponent}
+            <p className="flex items-center gap-2 font-semibold text-white text-lg">
+              <MatchVenueIcon isHome={nextMatch.is_home} size={19} />
+              {nextMatch.opponent}
             </p>
             <p className="text-gray-400 text-sm mt-1">
               {new Date(nextMatch.date).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -99,8 +101,9 @@ export default function Dashboard() {
                 const r = matchResult(m)
                 return (
                   <div key={m.id} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-300">
-                      {m.is_home ? 'vs' : '@'} {m.opponent}
+                    <span className="flex items-center gap-2 text-gray-300">
+                      <MatchVenueIcon isHome={m.is_home} />
+                      {m.opponent}
                     </span>
                     <div className="flex items-center gap-2">
                       <span className="text-white font-mono">{m.goals_for}–{m.goals_against}</span>

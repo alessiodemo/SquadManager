@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import Modal from '../components/Modal'
 import Badge from '../components/Badge'
 import { useSeason } from '../context/seasonContext'
+import MatchVenueIcon from '../components/MatchVenueIcon'
 
 function matchResult(m) {
   if (m.goals_for == null) return null
@@ -190,7 +191,10 @@ export default function Matches() {
                 {upcoming.map((m) => (
                   <div key={m.id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-white">{m.is_home ? 'vs' : '@'} {m.opponent}</p>
+                      <p className="flex items-center gap-2 font-medium text-white">
+                        <MatchVenueIcon isHome={m.is_home} />
+                        {m.opponent}
+                      </p>
                       <p className="text-xs text-gray-400 mt-0.5">{new Date(m.date).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })}{m.venue ? ` · ${m.venue}` : ''}</p>
                     </div>
                     <div className="flex gap-2">
@@ -225,7 +229,10 @@ export default function Matches() {
                       <div className="flex items-center gap-3">
                         <Badge label={r === 'win' ? 'V' : r === 'draw' ? 'P' : 'S'} variant={r} />
                         <div>
-                          <p className="font-medium text-white">{m.is_home ? 'vs' : '@'} {m.opponent}</p>
+                          <p className="flex items-center gap-2 font-medium text-white">
+                            <MatchVenueIcon isHome={m.is_home} />
+                            {m.opponent}
+                          </p>
                           <p className="text-xs text-gray-400 mt-0.5">{new Date(m.date).toLocaleDateString('it-IT')}</p>
                         </div>
                       </div>
