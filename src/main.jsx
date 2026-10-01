@@ -3,9 +3,11 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import './index.css'
+import { ThemeInit } from '../.flowbite-react/init'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    <ThemeInit />
     <BrowserRouter>
       <App />
     </BrowserRouter>

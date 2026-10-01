@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Select } from 'flowbite-react'
 import { getSeasons } from '../api/seasons'
 
 export default function SeasonSelector({ value, onChange }) {
@@ -9,10 +10,13 @@ export default function SeasonSelector({ value, onChange }) {
   }, [value])
 
   return (
-    <select
+    <Select
       value={value ?? ''}
       onChange={(e) => onChange(e.target.value || null)}
-      className="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-600"
+      sizing="sm"
+      color="gray"
+      className="w-full border-gray-700 bg-gray-900 text-gray-100 focus:border-green-600 focus:ring-green-600"
+      aria-label="Seleziona stagione"
     >
       <option value="">Tutte le stagioni</option>
       {seasons.map((s) => (
@@ -20,6 +24,6 @@ export default function SeasonSelector({ value, onChange }) {
           {s.name}
         </option>
       ))}
-    </select>
+    </Select>
   )
 }
