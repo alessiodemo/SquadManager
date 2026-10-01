@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { getSquadWithStats } from '../api/players'
+import { getSquadWithStats, importFootballDataSquad } from '../api/players'
+import { getSeasons } from '../api/seasons'
 import { upsertPlayer, deletePlayer } from '../api/players'
 import { supabase } from '../lib/supabase'
 import { getCurrentSeason } from '../api/seasons'
@@ -23,6 +24,7 @@ export default function Squad() {
   const [editingId, setEditingId] = useState(null)
   const [filter, setFilter] = useState('')
   const [banner, setBanner] = useState(null)
+  const [importing, setImporting] = useState(false)
 
   async function load(sid) {
     if (!sid) return
@@ -59,12 +61,14 @@ export default function Squad() {
 
   function openNew() {
     setBanner(null)
+    setBanner(null)
     setForm(emptyForm)
     setEditingId(null)
     setShowModal(true)
   }
 
   function openEdit(p) {
+    setBanner(null)
     setBanner(null)
     setForm({ name: p.name, surname: p.surname, role: p.role, nationality: p.nationality ?? '', birth_date: p.birth_date ?? '' })
     setEditingId(p.id)
@@ -85,14 +89,45 @@ export default function Squad() {
       await upsertPlayer(payload)
       setShowModal(false)
       setBanner({ type: 'success', text: editingId ? 'Giocatore aggiornato.' : 'Giocatore aggiunto alla rosa.' })
+      setBanner({ type: 'success', text: editingId ? 'Giocatore aggiornato.' : 'Giocatore aggiunto alla rosa.' })
       load(seasonId)
     } catch (e) {
       setBanner({ type: 'error', text: e.message || 'Impossibile salvare il giocatore.' })
     }
   }
 
+  async function handleImportSquad() {
+    if (!seasonId || importing) return
+    setImporting(true)
+    setBanner(null)
+
+    try {
+      const seasons = await getSeasons()
+      const selectedSeason = seasons.find((season) => season.id === seasonId)
+      if (!selectedSeason) throw new Error('La stagione selezionata non è disponibile.')
+
+      const result = await importFootballDataSquad(seasonId, selectedSeason.start_year)
+      await load(seasonId)
+      setBanner({
+        type: 'success',
+        text: `${result.team} ${result.season}/${String(result.season + 1).slice(-2)}: importati ${result.imported} giocatori${result.skipped ? `; ${result.skipped} non importati` : ''}.`,
+      })
+    } catch (e) {
+      setBanner({ type: 'error', text: e.message || 'Impossibile importare la rosa.' })
+    } finally {
+      setImporting(false)
+    }
+  }
+
   async function handleDelete(id) {
     if (!confirm('Eliminare questo giocatore?')) return
+    try {
+      await deletePlayer(id)
+      setBanner({ type: 'success', text: 'Giocatore eliminato.' })
+      load(seasonId)
+    } catch (e) {
+      setBanner({ type: 'error', text: e.message || 'Impossibile eliminare il giocatore.' })
+    }
     try {
       await deletePlayer(id)
       setBanner({ type: 'success', text: 'Giocatore eliminato.' })
@@ -111,15 +146,22 @@ export default function Squad() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-bold text-white">Rosa</h2>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <SeasonSelector value={seasonId} onChange={setSeasonId} />
+          <button onClick={handleImportSquad} disabled={!seasonId || importing} className="border border-gray-600 hover:bg-gray-800 disabled:opacity-50 text-gray-200 text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+            {importing ? 'Importazione...' : 'Importa rosa AC Milan'}
+          </button>
           <button onClick={openNew} className="bg-green-700 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             + Aggiungi
           </button>
         </div>
       </div>
+
+      <p className="text-xs text-gray-400">
+        L’import usa l’anno della stagione selezionata e associa i giocatori a quella stagione.
+      </p>
 
       {banner && (
         <div className={`rounded-lg border px-3 py-2 text-sm ${banner.type === 'success' ? 'bg-green-900/30 border-green-700 text-green-200' : 'bg-red-900/30 border-red-700 text-red-200'}`}>

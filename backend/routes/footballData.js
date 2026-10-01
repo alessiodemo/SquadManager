@@ -1,8 +1,95 @@
 import { Router } from 'express'
 import { pool } from '../db.js'
-import { getCompetitionMatches, getTable, normalizeMatch } from '../services/footballData.js'
+import {
+  getCompetitionMatches,
+  getTable,
+  getTeam,
+  normalizeMatch,
+  normalizeSquadPlayer,
+} from '../services/footballData.js'
 
 const router = Router()
+
+router.post('/teams/:teamId/squad/import', async (req, res) => {
+  const { teamId } = req.params
+  const { season, seasonId } = req.body
+
+  if (!/^\d+$/.test(teamId) || !Number.isInteger(Number(season)) || !seasonId) {
+    return res.status(400).json({ error: 'A valid teamId, season, and seasonId are required' })
+  }
+
+  let team
+  try {
+    team = await getTeam(teamId, season)
+  } catch (error) {
+    return res.status(502).json({ error: error.message })
+  }
+
+  if (!Array.isArray(team.squad)) {
+    return res.status(502).json({ error: 'football-data.org did not return a team squad' })
+  }
+
+  const players = team.squad.map(normalizeSquadPlayer).filter(Boolean)
+  let client
+
+  try {
+    client = await pool.connect()
+    await client.query('BEGIN')
+
+    await client.query(
+      `DELETE FROM season_players sp
+       USING players p
+       WHERE sp.player_id = p.id
+         AND sp.season_id = $1
+         AND p.football_data_id IS NOT NULL
+         AND NOT (p.football_data_id = ANY($2::bigint[]))`,
+      [seasonId, players.map((player) => player.football_data_id)],
+    )
+
+    for (const player of players) {
+      const result = await client.query(
+        `INSERT INTO players
+          (football_data_id, name, surname, role, nationality, birth_date)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (football_data_id) DO UPDATE SET
+           name = EXCLUDED.name,
+           surname = EXCLUDED.surname,
+           role = EXCLUDED.role,
+           nationality = EXCLUDED.nationality,
+           birth_date = EXCLUDED.birth_date
+         RETURNING id`,
+        [
+          player.football_data_id,
+          player.name,
+          player.surname,
+          player.role,
+          player.nationality,
+          player.birth_date,
+        ],
+      )
+
+      await client.query(
+        `INSERT INTO season_players (season_id, player_id)
+         VALUES ($1, $2)
+         ON CONFLICT DO NOTHING`,
+        [seasonId, result.rows[0].id],
+      )
+    }
+
+    await client.query('COMMIT')
+    return res.json({
+      imported: players.length,
+      skipped: team.squad.length - players.length,
+      team: team.name,
+      season: Number(season),
+    })
+  } catch (error) {
+    if (client) await client.query('ROLLBACK').catch(() => {})
+    return res.status(500).json({ error: error.message })
+  } finally {
+    client?.release()
+  }
+})
 
 router.get('/competitions/:code/matches', async (req, res) => {
   const { code } = req.params

@@ -12,6 +12,7 @@ create unique index if not exists seasons_current_unique
 
 create table if not exists players (
   id           uuid primary key default gen_random_uuid(),
+  football_data_id bigint,
   name         text not null,
   surname      text not null,
   role         text not null check (role in ('POR','DIF','CEN','ATT')),
@@ -19,6 +20,9 @@ create table if not exists players (
   birth_date   date,
   created_at   timestamptz default now()
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS players_football_data_id_unique
+  ON players (football_data_id);
 
 CREATE TABLE IF NOT EXISTS season_players (
   season_id uuid NOT NULL REFERENCES seasons(id) ON DELETE CASCADE,
