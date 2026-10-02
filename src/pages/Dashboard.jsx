@@ -5,6 +5,7 @@ import { getMatches } from '../api/matches'
 import StatCard from '../components/StatCard'
 import Badge from '../components/Badge'
 import MatchVenueIcon from '../components/MatchVenueIcon'
+import { getAnalytics } from '../api/analytics'
 
 function matchResult(m) {
   if (m.goals_for == null) return null
@@ -22,6 +23,7 @@ export default function Dashboard() {
   const [seasons, setSeasons] = useState([])
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
+  const [ summary, setSummary ] = useState(null)
 
   useEffect(() => {
     getSeasons().then(setSeasons).catch(console.error)
@@ -43,17 +45,32 @@ export default function Dashboard() {
     load()
   }, [seasonId])
 
-  const played = matches.filter((m) => m.goals_for != null)
-  const wins = played.filter((m) => m.goals_for > m.goals_against).length
-  const draws = played.filter((m) => m.goals_for === m.goals_against).length
-  const losses = played.filter((m) => m.goals_for < m.goals_against).length
-  const gf = played.reduce((acc, m) => acc + (m.goals_for ?? 0), 0)
-  const ga = played.reduce((acc, m) => acc + (m.goals_against ?? 0), 0)
+  useEffect(() => {
+    async function loadSummary() {
+      if (!seasonId) return
+      try {
+        const s = await getAnalytics(seasonId)
+        setSummary(s)
+      } catch (e) {
+        console.error('Error Summary:',e)
+      }
+    }
+
+      loadSummary()
+    }, [seasonId])
+
+  const played = summary?.played ?? 0
+  const wins = summary?.wins ?? 0
+  const draws = summary?.draws ?? 0
+  const losses = summary?.losses ?? 0
+  const gf = summary?.goalsFor ?? 0
+  const ga = summary?.goalsAgainst ?? 0
   const points = wins * 3 + draws
+  const playedMatches = matches.filter((m) =>m.goals_for !== null)
 
   const upcoming = matches.filter((m) => m.goals_for == null).sort((a, b) => new Date(a.date) - new Date(b.date))
   const nextMatch = upcoming[0] ?? null
-  const recentMatches = [...played].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
+  const recentMatches = [...playedMatches].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
   const season = seasons.find((item) => item.id === seasonId)
 
   if (loading) return <p className="text-gray-400">Caricamento...</p>
@@ -73,7 +90,7 @@ export default function Dashboard() {
         <StatCard label="Gol fatti" value={gf} />
         <StatCard label="Gol subiti" value={ga} />
         <StatCard label="Diff. reti" value={`${gf - ga >= 0 ? '+' : ''}${gf - ga}`} />
-        <StatCard label="Partite" value={played.length} />
+        <StatCard label="Partite" value={summaryPlayed} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

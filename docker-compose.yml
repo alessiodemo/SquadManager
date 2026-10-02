@@ -10,9 +10,10 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+
   spring:
     build:
-      context: ./backend-springù
+      context: ./backend-spring
     ports:
       - "8080:8080"
     environment:
@@ -21,15 +22,17 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
     depends_on:
       - postgres
+
   backend:
     build: ./backend
-    ports: 
+    ports:
       - "3000:3000"
     environment:
       DATABASE_URL: postgres://postgres:password@postgres:5432/squad_manager
       FOOTBALL_DATA_TOKEN: ${FOOTBALL_DATA_TOKEN}
-    depends_on: 
+    depends_on:
       - postgres
+
   frontend:
     build:
       context: .
@@ -38,6 +41,7 @@ services:
       - "80:80"
     depends_on:
       - backend
+
   frontend-dev:
     build:
       context: .
