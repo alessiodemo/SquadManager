@@ -90,7 +90,7 @@ export default function Dashboard() {
         <StatCard label="Gol fatti" value={gf} />
         <StatCard label="Gol subiti" value={ga} />
         <StatCard label="Diff. reti" value={`${gf - ga >= 0 ? '+' : ''}${gf - ga}`} />
-        <StatCard label="Partite" value={summaryPlayed} />
+        <StatCard label="Partite" value={played} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
