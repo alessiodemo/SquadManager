@@ -15,3 +15,14 @@ export async function upsertSeason(season) {
   })
 }
 
+export async function createSeasonContext(competitionCode, startYear, teamExternalId, teamName) {
+  return apiFetch('/api/seasons/context', {
+    method: 'POST',
+    body: JSON.stringify({
+      competitionCode,
+      startYear,
+      teamExternalId,
+      teamName,
+    }),
+  })
+}

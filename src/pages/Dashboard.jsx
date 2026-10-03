@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { getSeasons } from '../api/seasons'
 import { useSeason } from '../context/seasonContext'
 import { getMatches } from '../api/matches'
 import StatCard from '../components/StatCard'
@@ -19,20 +18,19 @@ function matchResultLabel(r) {
 }
 
 export default function Dashboard() {
-  const { seasonId } = useSeason()
-  const [seasons, setSeasons] = useState([])
+  const { seasonId, selectedSeason } = useSeason()
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
   const [ summary, setSummary ] = useState(null)
 
   useEffect(() => {
-    getSeasons().then(setSeasons).catch(console.error)
-  }, [])
-
-  useEffect(() => {
     async function load() {
       try {
-        if (!seasonId) return
+        if (!seasonId) {
+          setMatches([])
+          setLoading(false)
+          return
+        }
         setLoading(true)
         const m = await getMatches(seasonId)
         setMatches(m)
@@ -47,8 +45,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function loadSummary() {
-      if (!seasonId) return
+      if (!seasonId) {
+        setSummary(null)
+        return
+      }
       try {
+        setSummary(null)
         const s = await getAnalytics(seasonId)
         setSummary(s)
       } catch (e) {
@@ -71,7 +73,7 @@ export default function Dashboard() {
   const upcoming = matches.filter((m) => m.goals_for == null).sort((a, b) => new Date(a.date) - new Date(b.date))
   const nextMatch = upcoming[0] ?? null
   const recentMatches = [...playedMatches].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
-  const season = seasons.find((item) => item.id === seasonId)
+  const season = selectedSeason
 
   if (loading) return <p className="text-gray-400">Caricamento...</p>
 

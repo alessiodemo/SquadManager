@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { getCurrentSeason } from "../api/seasons";
+import { getCurrentSeason, getSeasons } from "../api/seasons";
 
 const SeasonContext = createContext();
 
@@ -10,6 +10,13 @@ export function useSeason() {
 export const SeasonProvider = function ({ children }) {
     const [ seasonId, setSeasonId ] = useState(null);
     const [ seasons, setSeasons ] = useState([]);
+
+    function activateSeason(season) {
+        setSeasons((current) => [
+            ...current.filter((item) => item.id !== season.id), season ,
+        ])
+        setSeasonId(season.id)
+    }
 
     useEffect(() => {
         async function loadSeason() {
@@ -30,7 +37,7 @@ export const SeasonProvider = function ({ children }) {
     const selectedSeason = seasons.find((season) => season.id === seasonId) ?? null;
 
     return (
-        <SeasonContext.Provider value={{seasonId, setSeasonId, selectedSeason}}>
+        <SeasonContext.Provider value={{seasonId, setSeasonId, selectedSeason, activateSeason}}>
             {children}
         </SeasonContext.Provider>
     )

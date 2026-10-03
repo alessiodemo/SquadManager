@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getTransfers, upsertTransfer, deleteTransfer } from '../api/transfers'
-import { getPlayers } from '../api/players'
+import { getSquadWithStats } from '../api/players'
 import Modal from '../components/Modal'
 import Badge from '../components/Badge'
 import { useSeason } from '../context/seasonContext'
@@ -23,15 +23,20 @@ export default function Market() {
   const [editingId, setEditingId] = useState(null)
   const [banner, setBanner] = useState(null)
 
-  const { seasonId, setSeasonId } = useSeason()
+  const { seasonId } = useSeason()
 
   async function load(sid) {
 
-    if (!sid) return
+    if (!sid) {
+      setTransfers([])
+      setPlayers([])
+      setLoading(false)
+      return
+    }
     
     setLoading(true)
     try {
-      const [t, p] = await Promise.all([getTransfers(sid), getPlayers()])
+      const [t, p] = await Promise.all([getTransfers(sid), getSquadWithStats(sid)])
       setTransfers(t)
       setPlayers(p)
     } catch (e) {

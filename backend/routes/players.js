@@ -80,12 +80,17 @@ import { pool } from '../db.js';
 
  router.delete("/:id", async(req, res) => {
        const { id } = req.params
+       const { seasonId } = req.query
+
+       if (!seasonId) {
+              return res.status(400).json({ error: 'seasonId is required' })
+       }
 
        try {
               await pool.query(
-                     `DELETE FROM players
-                      WHERE id = $1`,
-                     [id],
+                     `DELETE FROM season_players
+                      WHERE player_id = $1 AND season_id = $2`,
+                     [id, seasonId],
               )
               res.json({ success: true })
        } catch (error) {

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { getFootballDataCompetitions, getFootballDataTeamsForCompetition } from "../api/footballData";
 import { useSeason } from "./seasonContext";
+import { createSeasonContext } from "../api/seasons";
 
 const TeamContext = createContext();
 
@@ -13,7 +14,36 @@ export const TeamProvider = function({ children }) {
     const [ competitions, setCompetitions ] = useState([]);
     const [ competitionCode, setCompetitionCode ] = useState(null);
     const [ teams, setTeams ] = useState([]);
-    const { selectedSeason } = useSeason();
+    const { selectedSeason, activateSeason } = useSeason();
+
+    const selectedTeam = teams.find((team) => String(team.id) === String(teamId)) ?? null;
+
+    async function getSelectedTeam(selectedTeamId) {
+        if (!selectedTeamId) {
+            setTeamId(null);
+            return;
+        }
+
+        const team = teams.find((item) => String(item.id) === String(selectedTeamId));
+
+        if (!team || !competitionCode || !selectedSeason?.start_year) {
+            return;
+        }
+
+        try {
+            const season = await createSeasonContext(
+                competitionCode,
+                selectedSeason.start_year,
+                Number(team.id),
+                team.name,
+            );
+            activateSeason(season);
+            setTeamId(String(team.id));
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
 
     useEffect(() => {
         async function loadCompetitions() {
@@ -61,6 +91,8 @@ export const TeamProvider = function({ children }) {
             competitionCode,
             setCompetitionCode,
             teams,
+            selectedTeam,
+            getSelectedTeam,
          }}
         >
             {children}

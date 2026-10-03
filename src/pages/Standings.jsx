@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { getMatches, getStandings } from '../api/matches'
-import { getSeasons, upsertSeason } from '../api/seasons'
+import { getStandings } from '../api/matches'
 import { importStandings } from '../api/standings'
 import { useSeason } from '../context/seasonContext'
+import { useTeam } from '../context/teamContext'
 
 function computeStandings(matches) {
   const table = {}
@@ -64,16 +64,20 @@ export default function Standings() {
   const [rows, setRows] = useState([])
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
-  const [importYear, setImportYear] = useState('')
   const [importMessage, setImportMessage] = useState('')
-  const { seasonId, setSeasonId } = useSeason()
+  const { seasonId, selectedSeason } = useSeason()
+  const { competitionCode, selectedTeam } = useTeam()
 
 
   async function load(sid) {
-    if (!sid) return
+    if (!sid || !competitionCode) {
+      setRows([])
+      setLoading(false)
+      return
+    }
     setLoading(true)
     try {
-      const standings = await getStandings(sid)
+      const standings = await getStandings(sid, competitionCode)
       //const data = await getMatches(sid)
       //setMatches(data)
       setRows(
@@ -99,38 +103,22 @@ export default function Standings() {
   }
 
   async function handleImportStandings() {
-    if(!importYear){
-      setImportMessage('Inserisci l anno iniziale della stagione.')
+    if (!seasonId || !selectedSeason || !competitionCode || !selectedTeam) {
+      setImportMessage('Seleziona una lega, una stagione e un club prima di importare.')
       return
     }
     setImportMessage('Import...')
 
-    const year = Number(importYear)
-
     try {
-      const seasons = await getSeasons()
-      let season = seasons.find((item) => Number(item.start_year) === year)
-
-      if (!season) {
-        season = await upsertSeason({
-          name: `${year}/${String(year+1).slice(-2)}`,
-          start_year: year,
-          is_current: false,
-        })
-      }
-
       const result = await importStandings({
-        season: year,
-        seasonId: season.id,
+        season: selectedSeason.start_year,
+        seasonId,
+        competitionCode,
       })
 
-      if (season.id === seasonId) {
-        await load(season.id)
-      } else {
-        setSeasonId(season.id)
-      }
+      await load(seasonId)
 
-      setImportMessage(`Import completato: ${result.imported} righe per la stagione ${year}/${String(year + 1).slice(-2)}.`)
+      setImportMessage(`Import completato: ${result.imported} righe per ${selectedTeam.name}, stagione ${selectedSeason.name}.`)
       console.log(result)
     } catch (error) {
       setImportMessage(`Errore durante l’import: ${error.message}`)
@@ -138,26 +126,21 @@ export default function Standings() {
   } 
 
   useEffect(() => {
-    if (seasonId) load(seasonId)
-  }, [seasonId])
+    if (seasonId && competitionCode) {
+      load(seasonId)
+    } else {
+      setRows([])
+      setLoading(false)
+    }
+  }, [seasonId, competitionCode])
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-bold text-white">Classifica</h2>
-        <button onClick={handleImportStandings}>
-          Import Standings
+        <button onClick={handleImportStandings} disabled={!seasonId || !selectedSeason || !competitionCode || !selectedTeam}>
+          Importa classifica
         </button>
-        <input
-          className="w-48 shrink-0 rounded-md border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-white placeholder:text-gray-400"
-          type="number"
-          min="2000"
-          max={new Date().getFullYear()}
-          value={importYear}
-          onChange={(e) => setImportYear(e.target.value)}
-          placeholder="Start Year, e.g. 2024"
-          aria-label="Season's start year"
-        />
       </div>
       {importMessage && (
         <p role="status" className="text-sm text-gray-300">

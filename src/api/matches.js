@@ -41,17 +41,17 @@ export async function getMatchContext(matchId) {
   return apiFetch(`/api/matches/${matchId}/context`)
 }
 
-export async function importComptetitionMatches({ season, team, seasonId}) {
-  return apiFetch(`/api/football-data/competitions/SA/import`, {
+export async function importCompetitionMatches({ competitionCode, season, teamExternalId, seasonId }) {
+  return apiFetch(`/api/football-data/competitions/${encodeURIComponent(competitionCode)}/import`, {
     method: 'POST',
     body: JSON.stringify({
       season,
-      team,
+      teamExternalId,
       seasonId,
     }),
   })
 }
 
-export async function getStandings(seasonId, competitionCode='SA') {
-  return apiFetch(`/api/football-data/competitions/${competitionCode}/standings?seasonId=${seasonId}`)
+export async function getStandings(seasonId, competitionCode) {
+  return apiFetch(`/api/football-data/competitions/${encodeURIComponent(competitionCode)}/standings?seasonId=${encodeURIComponent(seasonId)}`)
 }

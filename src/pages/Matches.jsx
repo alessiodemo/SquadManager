@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
-import { getMatches, getMatchContext, upsertMatch, deleteMatch, updateScore, importComptetitionMatches } from '../api/matches'
-import { getSeasons } from '../api/seasons'
+import { getMatches, getMatchContext, upsertMatch, deleteMatch, updateScore, importCompetitionMatches } from '../api/matches'
 import { supabase } from '../lib/supabase'
 import Modal from '../components/Modal'
 import Badge from '../components/Badge'
 import { useSeason } from '../context/seasonContext'
+import { useTeam } from '../context/teamContext'
 import MatchVenueIcon from '../components/MatchVenueIcon'
 
 function matchResult(m) {
@@ -21,7 +21,8 @@ const emptyForm = {
 
 export default function Matches() {
   const [matches, setMatches] = useState([])
-  const { seasonId } = useSeason()
+  const { seasonId, selectedSeason } = useSeason()
+  const { competitionCode, selectedTeam } = useTeam()
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState(emptyForm)
@@ -30,15 +31,12 @@ export default function Matches() {
   const [liveScore, setLiveScore] = useState({ gf: '', ga: '' })
   const [context, setContext] = useState(null)
   const [contextLoading, setContextLoading] = useState(false)
-  const [seasons, setSeasons] = useState([])
-  const [team, setTeam] = useState('')
-
-  const selectedSeason = seasons.find(
-  (season) => season.id === seasonId
-  )
-
   const load = useCallback(async (sid) => {
-    if (!sid) return
+    if (!sid) {
+      setMatches([])
+      setLoading(false)
+      return
+    }
     setLoading(true)
     try {
       const data = await getMatches(sid)
@@ -48,10 +46,6 @@ export default function Matches() {
     } finally {
       setLoading(false)
     }
-  }, [])
-
-  useEffect(() => {
-    getSeasons().then(setSeasons).catch(console.error)
   }, [])
 
   useEffect(() => {
@@ -134,19 +128,17 @@ export default function Matches() {
   }
 
   async function handleImport() {
-
-    if (!selectedSeason) return
-
-    if (!team.trim()) {
-      alert('Inserisci una squadra')
+    if (!selectedSeason || !selectedTeam || !competitionCode) {
+      alert('Seleziona una lega, una stagione e un club prima di importare.')
       return
     }
 
     try {
-      const result = await importComptetitionMatches({
+      const result = await importCompetitionMatches({
+        competitionCode,
         season: selectedSeason.start_year,
-        team: team.trim(),
-        seasonId: selectedSeason.id,
+        teamExternalId: selectedTeam.id,
+        seasonId,
       })
 
       await load(seasonId)
@@ -165,14 +157,8 @@ export default function Matches() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-white">Partite</h2>
         <div className="flex gap-3">
-          <input
-            value={team}
-            onChange={(e) => setTeam(e.target.value)}
-            placeholder="Squadra, es. AC Milan"
-            className="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-1.5"
-          />
-          <button onClick={handleImport}>
-            Update Data
+          <button onClick={handleImport} disabled={!seasonId || !selectedTeam || !competitionCode}>
+            {selectedTeam ? `Aggiorna ${selectedTeam.name}` : 'Seleziona un club'}
           </button>
           <button onClick={openNew} className="bg-green-700 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             + Aggiungi

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { getSquadWithStats, importFootballDataSquad } from '../api/players'
-import { getSeasons } from '../api/seasons'
 import { upsertPlayer, deletePlayer } from '../api/players'
 import { supabase } from '../lib/supabase'
 import Modal from '../components/Modal'
 import { useSeason } from '../context/seasonContext'
+import { useTeam } from '../context/teamContext'
 
 const ROLES = ['POR', 'DIF', 'CEN', 'ALA', 'ATT']
 
@@ -24,10 +24,15 @@ export default function Squad() {
   const [banner, setBanner] = useState(null)
   const [importing, setImporting] = useState(false)
   
-  const { seasonId } = useSeason()
+  const { seasonId, selectedSeason } = useSeason()
+  const { selectedTeam } = useTeam()
 
   async function load(sid) {
-    if (!sid) return
+    if (!sid) {
+      setPlayers([])
+      setLoading(false)
+      return
+    }
     setLoading(true)
     try {
       const data = await getSquadWithStats(sid)
@@ -93,16 +98,16 @@ export default function Squad() {
   }
 
   async function handleImportSquad() {
-    if (!seasonId || importing) return
+    if (!seasonId || !selectedSeason || !selectedTeam || importing) return
     setImporting(true)
     setBanner(null)
 
     try {
-      const seasons = await getSeasons()
-      const selectedSeason = seasons.find((season) => season.id === seasonId)
-      if (!selectedSeason) throw new Error('La stagione selezionata non è disponibile.')
-
-      const result = await importFootballDataSquad(seasonId, selectedSeason.start_year)
+      const result = await importFootballDataSquad(
+        seasonId,
+        selectedSeason.start_year,
+        selectedTeam.id,
+      )
       await load(seasonId)
       setBanner({
         type: 'success',
@@ -118,7 +123,7 @@ export default function Squad() {
   async function handleDelete(id) {
     if (!confirm('Eliminare questo giocatore?')) return
     try {
-      await deletePlayer(id)
+      await deletePlayer(id, seasonId)
       setBanner({ type: 'success', text: 'Giocatore eliminato.' })
       load(seasonId)
     } catch (e) {
@@ -138,8 +143,8 @@ export default function Squad() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-bold text-white">Rosa</h2>
         <div className="flex flex-wrap gap-3">
-          <button onClick={handleImportSquad} disabled={!seasonId || importing} className="border border-gray-600 hover:bg-gray-800 disabled:opacity-50 text-gray-200 text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-            {importing ? 'Importazione...' : 'Importa rosa AC Milan'}
+          <button onClick={handleImportSquad} disabled={!seasonId || !selectedTeam || importing} className="border border-gray-600 hover:bg-gray-800 disabled:opacity-50 text-gray-200 text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+            {importing ? 'Importazione...' : `Importa rosa${selectedTeam ? ` ${selectedTeam.name}` : ''}`}
           </button>
           <button onClick={openNew} className="bg-green-700 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             + Aggiungi
@@ -148,7 +153,7 @@ export default function Squad() {
       </div>
 
       <p className="text-xs text-gray-400">
-        L’import usa l’anno della stagione selezionata e associa i giocatori a quella stagione.
+        L’import usa lega, stagione e club selezionati.
       </p>
 
       {banner && (

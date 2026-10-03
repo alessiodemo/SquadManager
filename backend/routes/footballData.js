@@ -117,28 +117,32 @@ router.get('/competitions/:code/matches', async (req, res) => {
 
 router.post('/competitions/:code/import', async (req, res) => {
   const { code } = req.params
-  const { season, team, seasonId } = req.body
+  const { season, teamExternalId, seasonId } = req.body
 
-  if (!team || !seasonId) {
+  if (
+    !Number.isInteger(Number(season))
+    || !Number.isSafeInteger(Number(teamExternalId))
+    || Number(teamExternalId) <= 0
+    || !seasonId
+  ) {
     return res.status(400).json({
-      error: 'team and seasonId body parameters are required',
+      error: 'A valid season, teamExternalId, and seasonId are required',
     })
   }
 
   try {
     const data = await getCompetitionMatches(code, season)
     const matches = data.matches
-      .map((match) => normalizeMatch(match, team, seasonId))
+      .map((match) => normalizeMatch(match, teamExternalId, seasonId))
       .filter(Boolean)
 
     for (const match of matches) {
       await pool.query(
         `INSERT INTO matches
           (external_id, season_id, date, opponent, is_home, venue, goals_for, goals_against)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-         ON CONFLICT (external_id) DO UPDATE SET
-           season_id = EXCLUDED.season_id,
-           date = EXCLUDED.date,
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          ON CONFLICT (season_id, external_id) DO UPDATE SET
+            date = EXCLUDED.date,
            opponent = EXCLUDED.opponent,
            is_home = EXCLUDED.is_home,
            venue = EXCLUDED.venue,

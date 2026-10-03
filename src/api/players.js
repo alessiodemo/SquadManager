@@ -13,7 +13,7 @@ export async function getSquadWithStats(seasonId) {
   return apiFetch(`/api/players/squad?seasonId=${seasonId}`)
 }
 
-export async function importFootballDataSquad(seasonId, season, teamId = 98) {
+export async function importFootballDataSquad(seasonId, season, teamId) {
   return apiFetch(`/api/football-data/teams/${teamId}/squad/import`, {
     method: 'POST',
     body: JSON.stringify({ seasonId, season }),
@@ -27,6 +27,6 @@ export async function upsertPlayer(player) {
   })
 }
 
-export async function deletePlayer(id) {
-  return apiFetch(`/api/players/${id}`, { method: 'DELETE' })
+export async function deletePlayer(id, seasonId) {
+  return apiFetch(`/api/players/${id}?seasonId=${encodeURIComponent(seasonId)}`, { method: 'DELETE' })
 }

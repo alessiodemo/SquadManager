@@ -89,9 +89,9 @@ export function normalizeSquadPlayer(player) {
   }
 }
 
-export function normalizeMatch(match, teamName, seasonId) {
-  const isHome = match.homeTeam.name === teamName
-  const isAway = match.awayTeam.name === teamName
+export function normalizeMatch(match, teamExternalId, seasonId) {
+  const isHome = Number(match.homeTeam.id) === Number(teamExternalId)
+  const isAway = Number(match.awayTeam.id) === Number(teamExternalId)
 
   if (!isHome && !isAway) {
     return null
