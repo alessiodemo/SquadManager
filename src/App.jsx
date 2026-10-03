@@ -6,11 +6,13 @@ import Matches from './pages/Matches'
 import Squad from './pages/Squad'
 import Standings from './pages/Standings'
 import Market from './pages/Market'
+import { TeamProvider } from './context/teamContext'
 
 
 export default function App() {
   return (
     <SeasonProvider>
+      <TeamProvider>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
@@ -20,6 +22,7 @@ export default function App() {
           <Route path="mercato" element={<Market />} />
         </Route>
       </Routes>
+      </TeamProvider>
     </SeasonProvider>
   )
 }

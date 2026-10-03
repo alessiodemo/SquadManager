@@ -1,19 +1,15 @@
+import { getFootballAuth } from './footballDataAuth.js'
+
 const BASE_URL = 'https://api.football-data.org/v4'
 
 export async function getCompetitionMatches(competitionCode, season) {
-  const token = process.env.FOOTBALL_DATA_TOKEN
-
-  if (!token) {
-    throw new Error('FOOTBALL_DATA_TOKEN is not configured')
-  }
-
   const params = new URLSearchParams()
   if (season) params.set('season', season)
 
   const query = params.toString()
   const url = `${BASE_URL}/competitions/${encodeURIComponent(competitionCode)}/matches${query ? `?${query}` : ''}`
   const response = await fetch(url, {
-    headers: { 'X-Auth-Token': token },
+    headers: getFootballAuth(),
   })
 
   if (!response.ok) {
@@ -25,19 +21,13 @@ export async function getCompetitionMatches(competitionCode, season) {
 }
 
 export async function getTable(code, season) {
-  const token = process.env.FOOTBALL_DATA_TOKEN
-
-  if (!token) {
-    throw new Error('FOOTBALL_DATA_TOKEN is not configured')
-  }
-
   const params = new URLSearchParams()
   if (season) params.set('season', season)
 
   const query = params.toString()
   const url = `${BASE_URL}/competitions/${code}/standings${query ? `?${query}` : ''}`
   const response = await fetch(url, {
-    headers: { 'X-Auth-Token': token },
+    headers: getFootballAuth(),
   })
 
   if (!response.ok) {
@@ -49,15 +39,9 @@ export async function getTable(code, season) {
 }
 
 export async function getTeam(teamId, season) {
-  const token = process.env.FOOTBALL_DATA_TOKEN
-
-  if (!token) {
-    throw new Error('FOOTBALL_DATA_TOKEN is not configured')
-  }
-
   const params = new URLSearchParams({ season: String(season) })
   const response = await fetch(`${BASE_URL}/teams/${encodeURIComponent(teamId)}?${params}`, {
-    headers: { 'X-Auth-Token': token },
+    headers: getFootballAuth(),
   })
 
   if (!response.ok) {
@@ -126,4 +110,31 @@ export function normalizeMatch(match, teamName, seasonId) {
     goals_against: isHome ? awayGoals : homeGoals,
     status: match.status,
   }
+}
+
+export async function getCompetitions() {
+  const res = await fetch(`${BASE_URL}/competitions/`, {
+    headers: getFootballAuth(),
+  })
+
+  if (!res.ok) {
+    const details = await res.text()
+    throw new Error(`football-data.org returned ${res.status}: ${details}`)
+  }
+
+  return res.json()
+
+}
+
+export async function getTeamsForCompetition(code, season) {
+  const result = await fetch(`${BASE_URL}/competitions/${code}/teams?season=${season}`, {
+    headers: getFootballAuth(),
+  })
+
+  if (!result.ok) {
+    const details = await result.text()
+    throw new Error(`football-data.org returned ${result.status}: ${details}`)
+  } 
+  
+  return result.json()
 }

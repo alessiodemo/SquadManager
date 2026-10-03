@@ -6,6 +6,8 @@ import {
   getTeam,
   normalizeMatch,
   normalizeSquadPlayer,
+  getCompetitions,
+  getTeamsForCompetition,
 } from '../services/footballData.js'
 
 const router = Router()
@@ -158,6 +160,31 @@ router.post('/competitions/:code/import', async (req, res) => {
     res.json({ imported: matches.length, season, competition: data.competition })
   } catch (error) {
     res.status(502).json({ error: error.message })
+  }
+})
+
+router.get('/competitions', async (req, res) => {
+  let data 
+  try {
+    data = await getCompetitions()
+    return res.json(data)
+  } catch (error) {
+    return res.status(502).json({ error: error.message })
+  }
+})
+
+router.get('/competitions/:code/teams', async (req, res) => {
+  const { code } = req.params
+  const { season } = req.query
+
+  if(!code || !season || (!/^\d{4}$/.test(String(season ?? '')))) {
+    return res.status(400).json({ error: 'League code and  valid season year are required' })
+  }
+  try {
+    const data = await getTeamsForCompetition(code, season)
+    return res.json(data)
+  } catch (error) {
+    return res.status(502).json({ error: error.message })
   }
 })
 

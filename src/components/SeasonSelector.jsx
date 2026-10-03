@@ -11,6 +11,7 @@ export default function SeasonSelector({ value, onChange }) {
 
   return (
     <Select
+      id="season-select"
       value={value ?? ''}
       onChange={(e) => onChange(e.target.value || null)}
       sizing="sm"
@@ -18,7 +19,7 @@ export default function SeasonSelector({ value, onChange }) {
       className="w-full border-gray-700 bg-gray-900 text-gray-100 focus:border-green-600 focus:ring-green-600"
       aria-label="Seleziona stagione"
     >
-      <option value="">Tutte le stagioni</option>
+      <option value="">Select a Season</option>
       {seasons.map((s) => (
         <option key={s.id} value={s.id}>
           {s.name}

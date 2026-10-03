@@ -1,7 +1,10 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Sidebar, SidebarItem, SidebarItemGroup, SidebarItems } from 'flowbite-react'
 import { useSeason } from '../context/seasonContext'
+import { useTeam } from '../context/teamContext'
 import SeasonSelector from './SeasonSelector'
+import CompetitionSelector from './CompetitionSelector'
+import TeamSelector from './TeamSelector'
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: '⚽' },
@@ -12,7 +15,8 @@ const navItems = [
 ]
 
 export default function Layout() {
-  const { seasonId, setSeasonId } = useSeason()
+  const { seasonId, setSeasonId, selectedSeason } = useSeason()
+  const { competitionCode } = useTeam()
   const { pathname } = useLocation()
 
   return (
@@ -27,10 +31,22 @@ export default function Layout() {
             <h1 className="mt-1 text-lg font-semibold tracking-normal text-white">Club operations</h1>
           </div>
           <div className="border-b border-gray-800 px-5 py-5">
+            <label htmlFor="competition-select" className="mb-2 block text-xs font-semibold uppercase text-gray-400">
+              Lega
+            </label>
+            <CompetitionSelector />
             <label htmlFor="season-select" className="mb-2 block text-xs font-semibold uppercase text-gray-400">
               Stagione
             </label>
             <SeasonSelector value={seasonId} onChange={setSeasonId} />
+            {competitionCode && selectedSeason?.start_year && (
+              <>
+                <label htmlFor="team-select" className="mb-2 mt-4 block text-xs font-semibold uppercase text-gray-400">
+                  Club
+                </label>
+                <TeamSelector />
+              </>
+            )}
           </div>
           <SidebarItems className="flex-1 px-3 py-5">
             <SidebarItemGroup className="mt-0 space-y-1 border-0 pt-0">
