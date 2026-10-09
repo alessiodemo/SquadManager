@@ -1,6 +1,7 @@
 import json
 
 from backend.services.llm_interaction.parameters_validation import MatchReport
+from constants import *
 
 
 def build_prompt(report: MatchReport, role: str) -> list[dict]:
@@ -16,6 +17,9 @@ def build_prompt(report: MatchReport, role: str) -> list[dict]:
     }
 
     return [
-        {"role": "system", "content": "Your are an assistant that analyze football matches. Use only the given details, without guess other information"},
-        {"role": "user", "content": f"Match Data:\n{json.dumps(data, ensure_ascii=False, indent=2)}\n\Role: {role}"},
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": USER_PROMPT_TEMPLATE.format(
+            data=json.dumps(data, ensure_ascii=False, indent=2),
+            task=role,
+        )},
     ]
