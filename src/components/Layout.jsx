@@ -35,13 +35,13 @@ export default function Layout() {
               Lega
             </label>
             <CompetitionSelector />
-            <label htmlFor="season-select" className="mb-2 block text-xs font-semibold uppercase text-gray-400">
+            <label htmlFor="season-select" className="mb-2 mt-2 block text-xs font-semibold uppercase text-gray-400">
               Stagione
             </label>
             <SeasonSelector value={seasonId} onChange={setSeasonId} />
             {competitionCode && selectedSeason?.start_year && (
               <>
-                <label htmlFor="team-select" className="mb-2 mt-4 block text-xs font-semibold uppercase text-gray-400">
+                <label htmlFor="team-select" className="mb-2 mt-2 block text-xs font-semibold uppercase text-gray-400">
                   Club
                 </label>
                 <TeamSelector />
