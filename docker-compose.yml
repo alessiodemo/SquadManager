@@ -1,4 +1,10 @@
 services:
+  llm-service:
+      build: 
+        ./backend/services/llm_interaction
+      ports: 
+        - "8000:8000"
+
   postgres:
     image: postgres:15
     environment:
@@ -30,8 +36,10 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:password@postgres:5432/squad_manager
       FOOTBALL_DATA_TOKEN: ${FOOTBALL_DATA_TOKEN}
+      LLM_SERVICE_URL: http://llm-service:8000
     depends_on:
       - postgres
+      - llm-service
 
   frontend:
     build:
@@ -53,12 +61,6 @@ services:
       - /app/node_modules
     depends_on:
       - backend
-
-  llm-service:
-    build: 
-      ./backend/services/llm-interaction
-    ports: 
-      - "8000:8000"
 
 volumes:
   postgres_data:

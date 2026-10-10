@@ -1,7 +1,7 @@
 import json
 
 from constants import *
-
+from langchain_core.prompts import ChatPromptTemplate
 from parameters_validation import MatchReport
 
 def get_data(report: MatchReport) -> list[dict]:
@@ -13,16 +13,13 @@ def get_data(report: MatchReport) -> list[dict]:
             "goals_scored": report.match.goals_for,
             "goals_conceded": report.match.goals_against,
             "score": report.result,
-            "events": [e.model_dump() for e in report.event]
+            "events": report.event.model_dump(),
         }
     return data
 
-def build_prompt(report: MatchReport, role: str) -> list[dict]:
+def build_prompt() -> ChatPromptTemplate:
     
-    return [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": USER_PROMPT_TEMPLATE.format(
-            data=json.dumps(report, ensure_ascii=False, indent=2),
-            task=role,
-        )},
-    ]
+    return ChatPromptTemplate.from_messages([
+        ("system", SYSTEM_PROMPT),
+        ("user", USER_PROMPT_TEMPLATE),
+    ])

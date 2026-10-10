@@ -1,0 +1,4 @@
+{
+  "raw": "{\"match\":{\"id\":\"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\"external_id\":1,\"season_id\":\"3fa85f64-5717-4562-b3fc-2c963f66afa7\",\"date\":\"2026-10-04T18:00:00Z\",\"opponent\":\"Milan\",\"is_home\":true,\"venue\":\"Allianz Stadium\",\"goals_for\":2,\"goals_against\":1,\"create_at\":\"2026-10-04T20:00:00Z\"},\"event\":{},\"result\":\"win\"}",
+  "role": "Riassumi la partita"
+}

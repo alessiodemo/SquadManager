@@ -5,6 +5,7 @@ from LLMClient import LLMClient
 from prompt_building import get_data
 
 import os
+import json
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
@@ -20,7 +21,7 @@ def get_llm():
         model=os.getenv("LLM_PROVIDER"),
         temperature=0.3,
         api_key=api_key,
-        base_url="",
+        base_url="https://openrouter.ai/api/v1",
     )
     
 def llm_run(raw: str, role, chain):
@@ -31,7 +32,7 @@ def llm_run(raw: str, role, chain):
         raise ValueError(f"Input format not valid: {e}") from e
     
     return chain.invoke({
-        "data": get_data(report),
+        "data": json.dumps(get_data(report), ensure_ascii=False, indent=2),
         "task": role
     })
 

@@ -100,7 +100,7 @@ router.delete('/:id/events/:eventId', async(req, res) => {
 })
 
 router.post('/:id/llmService', async(req, res) => {
-    const response = await fetch('', {
+    const response = await fetch(`${process.env.LLM_SERVICE_URL}/api/service`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
