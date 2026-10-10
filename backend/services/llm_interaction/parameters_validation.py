@@ -30,6 +30,10 @@ class MatchReport(BaseModel)
             raise ValueError(f"Result={self.result} is not coherent with the score {gf}-{ga}")
         return self
 
+class ServiceRequest(BaseModel):
+    raw: str
+    role: str
+
 
     
     

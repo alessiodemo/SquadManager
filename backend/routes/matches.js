@@ -99,4 +99,20 @@ router.delete('/:id/events/:eventId', async(req, res) => {
     res.json({ success: true })
 })
 
+router.post('/:id/llmService', async(req, res) => {
+    const response = await fetch('', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            raw: req.body.raw,
+            role: req.body.role
+        })
+    });
+
+    const result = await response.json();
+    res.json(result);
+})
+
 export default router

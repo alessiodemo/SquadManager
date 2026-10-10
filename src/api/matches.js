@@ -1,6 +1,4 @@
 import { apiFetch } from '../lib/api'
-//import { callApi } from '../../backend/services/llm_interaction/llm_interaction.py'
-
 export async function getMatches(seasonId) {
   return apiFetch(`/api/matches?seasonId=${seasonId}`)
 }
@@ -39,9 +37,17 @@ export async function deleteMatchEvent(id) {
 }
 
 export async function getMatchContext(matchId) {
-  return apiFetch(`/api/matches/${matchId}/context`)
-  // result = apiFetch(`/api/matches/${matchId}/context`)
-  // llm_interaction = callApi(result)
+  result = apiFetch(`/api/matches/${matchId}/context`)
+  llm_interaction = apiFetch('/api/matches/llmService', {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      raw: result,
+      role: "user"
+    })
+  })
 }
 
 export async function importCompetitionMatches({ competitionCode, season, teamExternalId, seasonId }) {
