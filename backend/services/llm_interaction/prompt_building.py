@@ -2,8 +2,7 @@ import json
 
 from constants import *
 
-from backend.services.llm_interaction.parameters_validation import MatchReport
-
+from parameters_validation import MatchReport
 
 def get_data(report: MatchReport) -> list[dict]:
     data = {
@@ -23,7 +22,7 @@ def build_prompt(report: MatchReport, role: str) -> list[dict]:
     return [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": USER_PROMPT_TEMPLATE.format(
-            data=json.dumps(data, ensure_ascii=False, indent=2),
+            data=json.dumps(report, ensure_ascii=False, indent=2),
             task=role,
         )},
     ]

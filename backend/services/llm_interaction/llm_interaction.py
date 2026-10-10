@@ -1,8 +1,8 @@
 from parameters_validation import MatchReport
 from pydantic import ValidationError
 
-from backend.services.llm_interaction import LLMClient
-from backend.services.llm_interaction.prompt_building import get_data
+from LLMClient import LLMClient
+from prompt_building import get_data
 
 import os
 from dotenv import load_dotenv

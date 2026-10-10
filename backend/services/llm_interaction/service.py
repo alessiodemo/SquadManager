@@ -14,7 +14,7 @@ def run_service(data: ServiceRequest):
 def service(raw: str, role: str):
     llm = FakeListChatModel(responses=["[FAKE] risposta di prova"])
     # llm = get_llm()
-    chain = build_chain(llm)
+    chain = build_chain(raw, role, llm)
     result = llm_run(raw, role, chain)
     return result.content
 

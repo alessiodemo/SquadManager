@@ -1,4 +1,6 @@
-from pydantic import BaseModel, Field, ValidationError
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 from uuid import UUID
 from datetime import datetime
 
@@ -14,10 +16,10 @@ class Match(BaseModel):
     goals_against: int = Field(ge=0)
     create_at: datetime
 
-class Event(BaseModel)
+class Event(BaseModel):
     model_config = ConfigDict(extra="allow")
 
-class MatchReport(BaseModel)
+class MatchReport(BaseModel):
     match: Match
     event: Event
     result: Literal["win","draw","loss"]
