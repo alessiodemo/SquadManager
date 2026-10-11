@@ -37,8 +37,8 @@ export async function deleteMatchEvent(id) {
 }
 
 export async function getMatchContext(matchId) {
-  result = apiFetch(`/api/matches/${matchId}/context`)
-  llm_interaction = apiFetch('/api/matches/llmService', {
+  const result = await apiFetch(`/api/matches/${matchId}/context`)
+  const llm_interaction = await apiFetch(`/api/matches/${matchId}/llmService`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -48,6 +48,7 @@ export async function getMatchContext(matchId) {
       role: "user"
     })
   })
+  return llm_interaction
 }
 
 export async function importCompetitionMatches({ competitionCode, season, teamExternalId, seasonId }) {

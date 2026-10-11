@@ -2,6 +2,8 @@ services:
   llm-service:
       build: 
         ./backend/services/llm_interaction
+      volumes:
+      - ./backend/services/llm_interaction:/app
       ports: 
         - "8000:8000"
 

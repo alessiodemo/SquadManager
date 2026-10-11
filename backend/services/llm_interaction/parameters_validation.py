@@ -6,7 +6,7 @@ from datetime import datetime
 
 class Match(BaseModel):
     id: UUID
-    external_id: int
+    external_id: int | None = None
     season_id: UUID
     date: datetime
     opponent: str = Field(min_length=1)
@@ -14,14 +14,14 @@ class Match(BaseModel):
     venue: str | None = None
     goals_for: int = Field(ge=0)
     goals_against: int = Field(ge=0)
-    create_at: datetime
+    created_at: datetime
 
 class Event(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 class MatchReport(BaseModel):
     match: Match
-    event: Event
+    events: list[Event] = []
     result: Literal["win","draw","loss"]
 
     @model_validator(mode="after")
@@ -33,7 +33,7 @@ class MatchReport(BaseModel):
         return self
 
 class ServiceRequest(BaseModel):
-    raw: str
+    raw: str | dict
     role: str
 
 
