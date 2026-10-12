@@ -45,7 +45,6 @@ export async function getMatchContext(matchId) {
     },
     body: JSON.stringify({
       raw: result,
-      role: "user"
     })
   })
   return llm_interaction

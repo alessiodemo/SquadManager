@@ -34,7 +34,7 @@ class MatchReport(BaseModel):
 
 class ServiceRequest(BaseModel):
     raw: str | dict
-    role: str
+    role: str | None = None
 
 
     

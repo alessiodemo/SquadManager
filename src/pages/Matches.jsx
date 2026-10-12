@@ -31,6 +31,8 @@ export default function Matches() {
   const [liveScore, setLiveScore] = useState({ gf: '', ga: '' })
   const [context, setContext] = useState(null)
   const [contextLoading, setContextLoading] = useState(false)
+  const [contextMatch, setContextMatch] = useState(null)
+  const [showContextModal, setShowContextModal] = useState(false)
   const load = useCallback(async (sid) => {
     if (!sid) {
       setMatches([])
@@ -114,14 +116,18 @@ export default function Matches() {
     }
   }
 
-  async function handleContext(matchId) {
+  async function handleContext(match) {
+    setContextMatch(match)
+    setShowContextModal(true)
+    setContext(null)
     setContextLoading(true)
 
     try {
-      const data = await getMatchContext(matchId)
+      const data = await getMatchContext(match.id)
       setContext(data)
     } catch (e) {
       alert(e.message)
+      setShowContextModal(false)
     } finally {
       setContextLoading(false)
     }
@@ -226,7 +232,7 @@ export default function Matches() {
                         <span className="font-mono font-bold text-white">{m.goals_for}–{m.goals_against}</span>
                         <button onClick={() => openEdit(m)} className="text-xs text-gray-400 hover:text-white">✏️</button>
                         <button onClick={() => handleDelete(m.id)} className="text-xs text-gray-400 hover:text-red-400">🗑️</button>
-                        <button onClick={() => handleContext(m.id)} className="text-xs text-blue-400 hover:text-blue-300">
+                        <button onClick={() => handleContext(m)} className="text-xs text-blue-400 hover:text-blue-300">
                           Context
                         </button>
                       </div>
@@ -243,14 +249,43 @@ export default function Matches() {
         </>
       )}
 
-      {contextLoading && (
-        <p className="text-gray-400">Loading Context...</p>
-      )}
-
-      {context && (
-        <pre className="bg-gray-950 text-gray-300 text-xs p-4 rounded-lg overflow-auto">
-          {JSON.stringify(context,null,2)}
-        </pre>
+      {showContextModal && (
+        <Modal
+          title={`Match Details — ${contextMatch?.opponent ? `${contextMatch.external_id ? contextMatch.name : '@'} ${contextMatch.opponent}` : 'Match'}`}
+          onClose={() => {
+            setShowContextModal(false)
+            setContext(null)
+          }}
+        >
+          {contextLoading ? (
+            <div className="flex flex-col items-center justify-center py-8 space-y-3">
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-sm text-gray-400">Building...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="bg-gray-950 border border-gray-800 rounded-xl p-4 max-h-96 overflow-y-auto">
+                <p className="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">
+                  {typeof context?.result === 'string'
+                    ? context.result
+                    : JSON.stringify(context?.result || context, null, 2)}
+                </p>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowContextModal(false)
+                    setContext(null)
+                  }}
+                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-medium rounded-lg transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </Modal>
       )}
 
       {showModal && (

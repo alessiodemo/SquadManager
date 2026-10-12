@@ -6,4 +6,4 @@ SYSTEM_PROMPT = (
 USER_PROMPT_TEMPLATE = """Match data:
 {data}
 
-Task: {task}"""
+Task: Provide a concise and structured match analysis, commenting on the result, key takeaways, and available details."""
