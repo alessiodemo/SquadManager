@@ -10,7 +10,7 @@ function computeStandings(matches) {
   for (const m of matches) {
     if (m.goals_for == null) continue
 
-    const us = 'La Nostra Squadra'
+    const us = 'Our Team'
     const them = m.opponent
 
     if (!table[us]) table[us] = { name: us, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0 }
@@ -104,7 +104,7 @@ export default function Standings() {
 
   async function handleImportStandings() {
     if (!seasonId || !selectedSeason || !competitionCode || !selectedTeam) {
-      setImportMessage('Seleziona una lega, una stagione e un club prima di importare.')
+      setImportMessage('Select a league, season and club to import')
       return
     }
     setImportMessage('Import...')
@@ -118,10 +118,10 @@ export default function Standings() {
 
       await load(seasonId)
 
-      setImportMessage(`Import completato: ${result.imported} righe per ${selectedTeam.name}, stagione ${selectedSeason.name}.`)
+      setImportMessage(`Import completed: ${result.imported} row for ${selectedTeam.name}, season ${selectedSeason.name}.`)
       console.log(result)
     } catch (error) {
-      setImportMessage(`Errore durante l’import: ${error.message}`)
+      setImportMessage(`Error during the import: ${error.message}`)
     }
   } 
 
@@ -137,9 +137,9 @@ export default function Standings() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-bold text-white">Classifica</h2>
+        <h2 className="text-2xl font-bold text-white">League Table</h2>
         <button onClick={handleImportStandings} disabled={!seasonId || !selectedSeason || !competitionCode || !selectedTeam}>
-          Importa classifica
+          Import League Table
         </button>
       </div>
       {importMessage && (
@@ -149,7 +149,7 @@ export default function Standings() {
       )}
 
       {loading ? (
-        <p className="text-gray-400">Caricamento...</p>
+        <p className="text-gray-400">Loading...</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -197,7 +197,7 @@ export default function Standings() {
                 )
               })}
               {rows.length === 0 && (
-                <tr><td colSpan="11" className="py-8 text-center text-gray-500">Nessun dato disponibile</td></tr>
+                <tr><td colSpan="11" className="py-8 text-center text-gray-500">No data available</td></tr>
               )}
             </tbody>
           </table>

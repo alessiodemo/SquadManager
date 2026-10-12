@@ -83,21 +83,21 @@ export default function Market() {
     try {
       await upsertTransfer(payload)
       setShowModal(false)
-      setBanner({ type: 'success', text: editingId ? 'Trasferimento aggiornato.' : 'Trasferimento aggiunto.' })
+      setBanner({ type: 'success', text: editingId ? 'Transfer updated.' : 'Transfer added.' })
       load(seasonId)
     } catch (e) {
-      setBanner({ type: 'error', text: e.message || 'Impossibile salvare il trasferimento.' })
+      setBanner({ type: 'error', text: e.message || 'Impossible to save the transfer.' })
     }
   }
 
   async function handleDelete(id) {
-    if (!confirm('Eliminare questo trasferimento?')) return
+    if (!confirm('Delete this transfer?')) return
     try {
       await deleteTransfer(id)
-      setBanner({ type: 'success', text: 'Trasferimento eliminato.' })
+      setBanner({ type: 'success', text: 'Transfer deleted.' })
       load(seasonId)
     } catch (e) {
-      setBanner({ type: 'error', text: e.message || 'Impossibile eliminare il trasferimento.' })
+      setBanner({ type: 'error', text: e.message || 'Impossible to delete the transfer.' })
     }
   }
 
@@ -184,7 +184,7 @@ export default function Market() {
       )}
 
       {showModal && (
-        <Modal title={editingId ? 'Modifica trasferimento' : 'Nuovo trasferimento'} onClose={() => setShowModal(false)}>
+        <Modal title={editingId ? 'Edit transfer' : 'New transfer'} onClose={() => setShowModal(false)}>
           <div className="space-y-4">
             <div>
               <label className="block text-xs text-gray-400 mb-1">Giocatore</label>

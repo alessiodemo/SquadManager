@@ -101,7 +101,7 @@ export default function Matches() {
   }
 
   async function handleDelete(id) {
-    if (!confirm('Eliminare questa partita?')) return
+    if (!confirm('Delete this match?')) return
     await deleteMatch(id)
     load(seasonId)
   }
