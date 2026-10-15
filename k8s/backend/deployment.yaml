@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: squadmanager
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: squadmanager/backend:1.0.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: squadmanager-config
+                  key: DATABASE_URL
+            - name: LLM_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: squadmanager-config
+                  key: LLM_SERVICE_URL
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: squadmanager-config
+                  key: PORT
+            - name: FOOTBALL_DATA_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: squadmanager-secret
+                  key: FOOTBALL_DATA_TOKEN
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 3
