@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: llm-service
+spec:
+  replicas: {{ .Values.replicas.llm }}
+  selector:
+    matchLabels:
+      app: llm-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: llm-service
+    spec:
+      containers:
+        - name: llm-service
+          image: "{{ .Values.images.llm.repository }}:{{ .Values.images.llm.tag }}"
+          imagePullPolicy: {{ .Values.images.llm.pullPolicy }}
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: squadmanager-secret
+          resources:
+            requests:
+              cpu: {{ .Values.resources.llm.requests.cpu }}
+              memory: {{ .Values.resources.llm.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.llm.limits.cpu }}
+              memory: {{ .Values.resources.llm.limits.memory }}
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 40
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-service
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: llm-service
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP
