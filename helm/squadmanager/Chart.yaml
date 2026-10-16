@@ -1,0 +1,6 @@
+apiVersion: v2
+name: squadmanager
+description: Helm Chart per la web app full-stack SquadManager (Frontend, Backend, LLM, PostgreSQL)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

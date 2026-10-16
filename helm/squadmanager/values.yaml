@@ -1,0 +1,69 @@
+namespace: squadmanager
+
+images:
+  frontend:
+    repository: squadmanager/frontend
+    tag: "1.0.0"
+    pullPolicy: Never
+  backend:
+    repository: squadmanager/backend
+    tag: "1.0.0"
+    pullPolicy: Never
+  llm:
+    repository: squadmanager/llm-service
+    tag: "1.0.0"
+    pullPolicy: Never
+  postgres:
+    repository: postgres
+    tag: "15"
+    pullPolicy: IfNotPresent
+
+replicas:
+  frontend: 2
+  backend: 2
+  llm: 1
+
+resources:
+  frontend:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+  backend:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+  llm:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+  postgres:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  cpuUtilization: 60
+  memoryUtilization: 70
+
+# Credenziali e variabili sensibili
+# In produzione vengono passate da linea di comando con --set o da secrets manager
+secrets:
+  postgresPassword: "password"
+  footballDataToken: SUxfVFVPX1RPS0VOX1FVSQ==
+  openrouterApiKey: c2stb3IteHh4eC4uLg==
+  llmProvider: "openai/gpt-4o-mini"
