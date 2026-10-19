@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
+import { Sparkles, Plus, RefreshCw, Radio, Edit2, Trash2, Calendar, CheckCircle2 } from 'lucide-react'
 import { getMatches, getMatchContext, upsertMatch, deleteMatch, updateScore, importCompetitionMatches } from '../api/matches'
 import { supabase } from '../lib/supabase'
 import Modal from '../components/Modal'
@@ -160,49 +161,135 @@ export default function Matches() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-white">Partite</h2>
-        <div className="flex gap-3">
-          <button onClick={handleImport} disabled={!seasonId || !selectedTeam || !competitionCode}>
-            {selectedTeam ? `Aggiorna ${selectedTeam.name}` : 'Seleziona un club'}
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-sofa-border">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-black text-white tracking-tight">Partite</h2>
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-sofa-card border border-sofa-border text-sofa-muted">
+              {matches.length} totali
+            </span>
+          </div>
+          <p className="text-xs text-sofa-muted mt-0.5">
+            {selectedTeam ? `${selectedTeam.name} · Calendario e risultati` : 'Seleziona una squadra per visualizzare il calendario'}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={handleImport}
+            disabled={!seasonId || !selectedTeam || !competitionCode}
+            className="inline-flex items-center gap-2 bg-sofa-card hover:bg-sofa-cardHover border border-sofa-border hover:border-sofa-borderLight text-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <RefreshCw size={14} className="text-sofa-muted" />
+            <span>{selectedTeam ? `Sincronizza ${selectedTeam.name}` : 'Sincronizza'}</span>
           </button>
-          <button onClick={openNew} className="bg-green-700 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-            + Aggiungi
+          
+          <button
+            onClick={openNew}
+            disabled={!seasonId}
+            className="inline-flex items-center gap-1.5 bg-sofa-blue hover:bg-sofa-blueHover text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md shadow-sofa-blue/25 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+          >
+            <Plus size={15} strokeWidth={2.5} />
+            <span>Nuova Partita</span>
           </button>
         </div>
       </div>
 
       {loading ? (
-        <p className="text-gray-400">Caricamento...</p>
+        <div className="flex flex-col items-center justify-center py-16 space-y-3">
+          <div className="w-8 h-8 border-2 border-sofa-blue border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-sofa-muted">Caricamento partite...</p>
+        </div>
       ) : (
         <>
+          {/* Upcoming Matches */}
           {upcoming.length > 0 && (
-            <section>
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">Calendario</h3>
+            <section className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black uppercase tracking-wider text-sofa-muted flex items-center gap-2">
+                  <Calendar size={14} className="text-sofa-blueLight" />
+                  <span>Calendario ({upcoming.length})</span>
+                </h3>
+              </div>
               <div className="space-y-2">
                 {upcoming.map((m) => (
-                  <div key={m.id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center justify-between">
-                    <div>
-                      <p className="flex items-center gap-2 font-medium text-white">
-                        <MatchVenueIcon isHome={m.is_home} />
-                        {m.opponent}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-0.5">{new Date(m.date).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })}{m.venue ? ` · ${m.venue}` : ''}</p>
+                  <div
+                    key={m.id}
+                    className="bg-sofa-card border border-sofa-border hover:border-sofa-borderLight rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-150 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <MatchVenueIcon isHome={m.is_home} />
+                      <div>
+                        <p className="font-bold text-white text-sm tracking-tight flex items-center gap-2">
+                          <span>{m.is_home ? (selectedTeam?.name || 'Casa') : m.opponent}</span>
+                          <span className="text-sofa-dim font-normal text-xs">vs</span>
+                          <span>{m.is_home ? m.opponent : (selectedTeam?.name || 'Ospite')}</span>
+                        </p>
+                        <p className="text-xs text-sofa-muted mt-0.5">
+                          {new Date(m.date).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                          {m.venue ? ` · 📍 ${m.venue}` : ''}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
+
+                    <div className="flex items-center gap-2 self-end sm:self-center">
                       {liveId === m.id ? (
-                        <div className="flex items-center gap-2">
-                          <input type="number" min="0" value={liveScore.gf} onChange={(e) => setLiveScore((s) => ({ ...s, gf: e.target.value }))} placeholder="0" className="w-12 bg-gray-800 border border-gray-600 text-white text-center rounded px-1 py-0.5 text-sm" />
-                          <span className="text-gray-400">–</span>
-                          <input type="number" min="0" value={liveScore.ga} onChange={(e) => setLiveScore((s) => ({ ...s, ga: e.target.value }))} placeholder="0" className="w-12 bg-gray-800 border border-gray-600 text-white text-center rounded px-1 py-0.5 text-sm" />
-                          <button onClick={() => handleLiveUpdate(m.id)} className="bg-green-700 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-lg">Salva</button>
-                          <button onClick={() => setLiveId(null)} className="text-gray-500 hover:text-white text-xs px-2 py-1">✕</button>
+                        <div className="flex items-center gap-1.5 bg-sofa-dark border border-sofa-border p-1 rounded-lg">
+                          <input
+                            type="number"
+                            min="0"
+                            value={liveScore.gf}
+                            onChange={(e) => setLiveScore((s) => ({ ...s, gf: e.target.value }))}
+                            placeholder="0"
+                            className="w-10 bg-[#131f33] border border-sofa-border text-white text-center rounded px-1 py-1 text-xs font-bold font-mono focus:border-sofa-blue outline-none"
+                          />
+                          <span className="text-sofa-dim font-bold">–</span>
+                          <input
+                            type="number"
+                            min="0"
+                            value={liveScore.ga}
+                            onChange={(e) => setLiveScore((s) => ({ ...s, ga: e.target.value }))}
+                            placeholder="0"
+                            className="w-10 bg-[#131f33] border border-sofa-border text-white text-center rounded px-1 py-1 text-xs font-bold font-mono focus:border-sofa-blue outline-none"
+                          />
+                          <button
+                            onClick={() => handleLiveUpdate(m.id)}
+                            className="bg-sofa-blue hover:bg-sofa-blueHover text-white text-xs font-bold px-2.5 py-1 rounded"
+                          >
+                            Salva
+                          </button>
+                          <button
+                            onClick={() => setLiveId(null)}
+                            className="text-sofa-muted hover:text-white text-xs px-1.5 py-1"
+                          >
+                            ✕
+                          </button>
                         </div>
                       ) : (
-                        <button onClick={() => { setLiveId(m.id); setLiveScore({ gf: '', ga: '' }) }} className="text-xs text-green-400 hover:text-green-300 border border-green-700 px-3 py-1 rounded-lg">Live</button>
+                        <button
+                          onClick={() => { setLiveId(m.id); setLiveScore({ gf: '', ga: '' }) }}
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                          <Radio size={12} className="animate-pulse" />
+                          <span>Live</span>
+                        </button>
                       )}
-                      <button onClick={() => openEdit(m)} className="text-xs text-gray-400 hover:text-white">✏️</button>
-                      <button onClick={() => handleDelete(m.id)} className="text-xs text-gray-400 hover:text-red-400">🗑️</button>
+
+                      <button
+                        onClick={() => openEdit(m)}
+                        title="Modifica"
+                        className="p-1.5 text-sofa-muted hover:text-white hover:bg-sofa-cardHover rounded-lg transition-colors"
+                      >
+                        <Edit2 size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(m.id)}
+                        title="Elimina"
+                        className="p-1.5 text-sofa-muted hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                      >
+                        <Trash2 size={15} />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -210,30 +297,67 @@ export default function Matches() {
             </section>
           )}
 
+          {/* Played Matches / Results */}
           {played.length > 0 && (
-            <section>
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">Risultati</h3>
+            <section className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black uppercase tracking-wider text-sofa-muted flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-400" />
+                  <span>Risultati ({played.length})</span>
+                </h3>
+              </div>
               <div className="space-y-2">
                 {played.map((m) => {
                   const r = matchResult(m)
                   return (
-                    <div key={m.id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center justify-between">
+                    <div
+                      key={m.id}
+                      className="bg-sofa-card border border-sofa-border hover:border-sofa-borderLight rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-150 shadow-sm"
+                    >
                       <div className="flex items-center gap-3">
                         <Badge label={r === 'win' ? 'V' : r === 'draw' ? 'P' : 'S'} variant={r} />
                         <div>
-                          <p className="flex items-center gap-2 font-medium text-white">
+                          <div className="flex items-center gap-2">
                             <MatchVenueIcon isHome={m.is_home} />
-                            {m.opponent}
+                            <p className="font-bold text-white text-sm tracking-tight">
+                              {m.opponent}
+                            </p>
+                          </div>
+                          <p className="text-xs text-sofa-muted mt-0.5">
+                            {new Date(m.date).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })}
+                            {m.venue ? ` · ${m.venue}` : ''}
                           </p>
-                          <p className="text-xs text-gray-400 mt-0.5">{new Date(m.date).toLocaleDateString('it-IT')}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono font-bold text-white">{m.goals_for}–{m.goals_against}</span>
-                        <button onClick={() => openEdit(m)} className="text-xs text-gray-400 hover:text-white">✏️</button>
-                        <button onClick={() => handleDelete(m.id)} className="text-xs text-gray-400 hover:text-red-400">🗑️</button>
-                        <button onClick={() => handleContext(m)} className="text-xs text-blue-400 hover:text-blue-300">
-                          Context
+
+                      <div className="flex items-center gap-3 self-end sm:self-center">
+                        {/* Score Box */}
+                        <div className="font-mono font-black text-sm sm:text-base px-3 py-1 bg-[#0b1320] border border-[#1e2f4a] text-white rounded-lg tabular-nums shadow-inner tracking-wider">
+                          {m.goals_for} – {m.goals_against}
+                        </div>
+
+                        {/* Sofascore AI Context Button */}
+                        <button
+                          onClick={() => handleContext(m)}
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-sofa-blueLight bg-sofa-blue/10 hover:bg-sofa-blue/20 border border-sofa-blue/30 px-3 py-1.5 rounded-lg transition-all shadow-sm"
+                        >
+                          <Sparkles size={13} className="text-sofa-blueLight" />
+                          <span>Analisi AI</span>
+                        </button>
+
+                        <button
+                          onClick={() => openEdit(m)}
+                          title="Modifica"
+                          className="p-1.5 text-sofa-muted hover:text-white hover:bg-sofa-cardHover rounded-lg transition-colors"
+                        >
+                          <Edit2 size={15} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(m.id)}
+                          title="Elimina"
+                          className="p-1.5 text-sofa-muted hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={15} />
                         </button>
                       </div>
                     </div>
@@ -244,43 +368,52 @@ export default function Matches() {
           )}
 
           {upcoming.length === 0 && played.length === 0 && (
-            <p className="text-gray-500">Nessuna partita in questa stagione.</p>
+            <div className="text-center py-12 bg-sofa-card border border-sofa-border rounded-2xl p-8">
+              <Calendar size={36} className="mx-auto text-sofa-muted opacity-40 mb-3" />
+              <p className="text-sm font-semibold text-slate-300">Nessuna partita in questa stagione</p>
+              <p className="text-xs text-sofa-muted mt-1">Usa il pulsante in alto a destra per sincronizzare o aggiungere gare</p>
+            </div>
           )}
         </>
       )}
 
+      {/* AI Match Context Modal */}
       {showContextModal && (
         <Modal
-          title={`Match Details — ${contextMatch?.opponent ? `${contextMatch.external_id ? contextMatch.name : '@'} ${contextMatch.opponent}` : 'Match'}`}
+          title={`Analisi Sofascore AI — vs ${contextMatch?.opponent || 'Partita'}`}
           onClose={() => {
             setShowContextModal(false)
             setContext(null)
           }}
+          maxWidth="max-w-2xl"
         >
           {contextLoading ? (
-            <div className="flex flex-col items-center justify-center py-8 space-y-3">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-gray-400">Building...</p>
+            <div className="flex flex-col items-center justify-center py-12 space-y-4">
+              <div className="w-10 h-10 border-2 border-sofa-blue border-t-transparent rounded-full animate-spin" />
+              <div className="text-center">
+                <p className="text-sm font-bold text-white">Generazione analisi in corso...</p>
+                <p className="text-xs text-sofa-muted mt-1">L'assistente AI sta elaborando statistiche ed eventi del match</p>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="bg-gray-950 border border-gray-800 rounded-xl p-4 max-h-96 overflow-y-auto">
-                <p className="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">
+              <div className="bg-[#0b1320] border border-sofa-border rounded-xl p-5 max-h-[60vh] overflow-y-auto">
+                <div className="prose prose-invert prose-sm max-w-none text-slate-200 text-xs sm:text-sm whitespace-pre-wrap leading-relaxed font-sans">
                   {typeof context?.result === 'string'
                     ? context.result
                     : JSON.stringify(context?.result || context, null, 2)}
-                </p>
+                </div>
               </div>
-              <div className="flex justify-end">
+              <div className="flex justify-end pt-2">
                 <button
                   type="button"
                   onClick={() => {
                     setShowContextModal(false)
                     setContext(null)
                   }}
-                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-medium rounded-lg transition-colors"
+                  className="px-5 py-2 bg-sofa-card hover:bg-sofa-cardHover border border-sofa-border text-white text-xs font-bold rounded-xl transition-colors"
                 >
-                  Close
+                  Chiudi
                 </button>
               </div>
             </div>
@@ -288,40 +421,90 @@ export default function Matches() {
         </Modal>
       )}
 
+      {/* Add / Edit Match Modal */}
       {showModal && (
         <Modal title={editingId ? 'Modifica partita' : 'Nuova partita'} onClose={() => setShowModal(false)}>
           <div className="space-y-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Avversario</label>
-              <input value={form.opponent} onChange={(e) => setForm((f) => ({ ...f, opponent: e.target.value }))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600" />
+              <label className="block text-[11px] font-bold text-sofa-muted uppercase tracking-wider mb-1">Avversario</label>
+              <input
+                value={form.opponent}
+                onChange={(e) => setForm((f) => ({ ...f, opponent: e.target.value }))}
+                placeholder="es. Juventus, Inter, Milan..."
+                className="w-full bg-[#0b1320] border border-sofa-border rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-sofa-blue focus:ring-1 focus:ring-sofa-blue transition-colors"
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">Data</label>
-                <input type="date" value={form.date} onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600" />
+                <label className="block text-[11px] font-bold text-sofa-muted uppercase tracking-wider mb-1">Data</label>
+                <input
+                  type="date"
+                  value={form.date}
+                  onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+                  className="w-full bg-[#0b1320] border border-sofa-border rounded-xl px-3.5 py-2 text-white text-sm focus:outline-none focus:border-sofa-blue focus:ring-1 focus:ring-sofa-blue transition-colors"
+                />
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">Venue</label>
-                <input value={form.venue} onChange={(e) => setForm((f) => ({ ...f, venue: e.target.value }))} placeholder="Stadio..." className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600" />
+                <label className="block text-[11px] font-bold text-sofa-muted uppercase tracking-wider mb-1">Stadio / Venue</label>
+                <input
+                  value={form.venue}
+                  onChange={(e) => setForm((f) => ({ ...f, venue: e.target.value }))}
+                  placeholder="es. San Siro..."
+                  className="w-full bg-[#0b1320] border border-sofa-border rounded-xl px-3.5 py-2 text-white text-sm focus:outline-none focus:border-sofa-blue focus:ring-1 focus:ring-sofa-blue transition-colors"
+                />
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <input id="home" type="checkbox" checked={form.is_home} onChange={(e) => setForm((f) => ({ ...f, is_home: e.target.checked }))} className="accent-green-600" />
-              <label htmlFor="home" className="text-sm text-gray-300">Partita in casa</label>
+            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[#0b1320] border border-sofa-border">
+              <input
+                id="home"
+                type="checkbox"
+                checked={form.is_home}
+                onChange={(e) => setForm((f) => ({ ...f, is_home: e.target.checked }))}
+                className="w-4 h-4 accent-sofa-blue rounded cursor-pointer"
+              />
+              <label htmlFor="home" className="text-xs font-semibold text-slate-200 cursor-pointer">
+                Partita in casa (Home)
+              </label>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">Gol fatti</label>
-                <input type="number" min="0" value={form.goals_for} onChange={(e) => setForm((f) => ({ ...f, goals_for: e.target.value }))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600" />
+                <label className="block text-[11px] font-bold text-sofa-muted uppercase tracking-wider mb-1">Gol fatti</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.goals_for}
+                  onChange={(e) => setForm((f) => ({ ...f, goals_for: e.target.value }))}
+                  placeholder="0"
+                  className="w-full bg-[#0b1320] border border-sofa-border rounded-xl px-3.5 py-2 text-white text-sm focus:outline-none focus:border-sofa-blue focus:ring-1 focus:ring-sofa-blue transition-colors font-mono"
+                />
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">Gol subiti</label>
-                <input type="number" min="0" value={form.goals_against} onChange={(e) => setForm((f) => ({ ...f, goals_against: e.target.value }))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600" />
+                <label className="block text-[11px] font-bold text-sofa-muted uppercase tracking-wider mb-1">Gol subiti</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.goals_against}
+                  onChange={(e) => setForm((f) => ({ ...f, goals_against: e.target.value }))}
+                  placeholder="0"
+                  className="w-full bg-[#0b1320] border border-sofa-border rounded-xl px-3.5 py-2 text-white text-sm focus:outline-none focus:border-sofa-blue focus:ring-1 focus:ring-sofa-blue transition-colors font-mono"
+                />
               </div>
             </div>
-            <div className="flex justify-end gap-3 pt-2">
-              <button onClick={() => setShowModal(false)} className="text-sm text-gray-400 hover:text-white px-4 py-2">Annulla</button>
-              <button onClick={handleSave} className="bg-green-700 hover:bg-green-600 text-white text-sm font-medium px-5 py-2 rounded-lg">Salva</button>
+            <div className="flex justify-end gap-3 pt-3 border-t border-sofa-border">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="text-xs font-bold text-sofa-muted hover:text-white px-4 py-2 transition-colors"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                className="bg-sofa-blue hover:bg-sofa-blueHover text-white text-xs font-bold px-5 py-2 rounded-xl transition-all shadow-md shadow-sofa-blue/25"
+              >
+                Salva Partita
+              </button>
             </div>
           </div>
         </Modal>

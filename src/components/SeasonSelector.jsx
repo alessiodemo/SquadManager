@@ -10,21 +10,19 @@ export default function SeasonSelector({ value, onChange }) {
   }, [value])
 
   return (
-    <Select
+    <select
       id="season-select"
       value={value ?? ''}
       onChange={(e) => onChange(e.target.value || null)}
-      sizing="sm"
-      color="gray"
-      className="w-full border-gray-700 bg-gray-900 text-gray-100 focus:border-green-600 focus:ring-green-600"
+      className="w-full bg-[#0b1320] border border-[#1e2f4a] text-slate-100 text-xs rounded-lg px-3 py-2 focus:border-sofa-blue focus:ring-1 focus:ring-sofa-blue outline-none transition-colors cursor-pointer"
       aria-label="Seleziona stagione"
     >
-      <option value="">Select a Season</option>
+      <option value="" className="bg-[#0b1320] text-slate-400">Select a Season</option>
       {seasons.map((s) => (
-        <option key={s.id} value={s.id}>
+        <option key={s.id} value={s.id} className="bg-[#0b1320] text-slate-100">
           {s.name}
         </option>
       ))}
-    </Select>
+    </select>
   )
 }
