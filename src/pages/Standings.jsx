@@ -226,7 +226,6 @@ export default function Standings() {
                           </span>
                           {isSelected && (
                             <span className="hidden lg:inline-flex bg-sofa-blue/20 text-sofa-blue border border-sofa-blue/30 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
-                              La tua squadra
                             </span>
                           )}
                         </div>
@@ -256,7 +255,7 @@ export default function Standings() {
 
                       {/* Recent Form */}
                       <td className="py-3 px-4 text-center hidden sm:table-cell">
-                        {isSelected ? (
+                        {
                           <div className="flex items-center justify-center gap-1">
                             {ourForm.length === 0 ? (
                               <span className="text-xs text-sofa-dim">—</span>
@@ -270,9 +269,7 @@ export default function Standings() {
                               ))
                             )}
                           </div>
-                        ) : (
-                          <span className="text-xs text-sofa-dim font-mono">—</span>
-                        )}
+                        }
                       </td>
                     </tr>
                   )
