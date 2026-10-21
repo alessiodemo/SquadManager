@@ -4,7 +4,11 @@ import { pool } from '../db.js';
 const router = Router();
 
 router.get("/", async(req, res) => {
-    const result = await pool.query('SELECT * FROM seasons ORDER BY start_year DESC')
+    const result = await pool.query(`
+        SELECT DISTINCT ON (start_year) *
+        FROM seasons
+        ORDER BY start_year DESC, is_current DESC, created_at DESC NULLS LAST
+    `)
     res.json(result.rows)
 })
 
@@ -42,7 +46,7 @@ router.post("/context", async(req, res) => {
                 team_name = EXCLUDED.team_name
              RETURNING *`,
             [
-                String(startYear),
+                `${startYear}/${startYear + 1}`,
                 startYear,
                 normalizedCompetitionCode,
                 teamExternalId,
@@ -60,7 +64,7 @@ router.get("/current", async(req, res) => {
     const result = await pool.query(
         `SELECT *
         FROM seasons 
-        ORDER BY start_year DESC
+        ORDER BY is_current DESC, start_year DESC, created_at DESC NULLS LAST
         LIMIT 1
         `
     )
@@ -69,11 +73,14 @@ router.get("/current", async(req, res) => {
 
 router.post("/", async(req, res) => {
     const { id, name, start_year, is_current } = req.body
+    const normalizedName = Number.isInteger(start_year)
+        ? `${start_year}/${start_year + 1}`
+        : name
     const result = await pool.query(
         `INSERT INTO seasons (id, name, start_year, is_current)
         VALUES (COALESCE($1, gen_random_uuid()), $2, $3, $4)
         ON CONFLICT (id) DO UPDATE SET name=$2, start_year=$3, is_current=$4
-        RETURNING *`, [id || null, name, start_year, is_current ?? false]
+        RETURNING *`, [id || null, normalizedName, start_year, is_current ?? false]
     )
     res.json(result.rows[0])
 })

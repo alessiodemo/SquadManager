@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { getCurrentSeason, getSeasons } from "../api/seasons";
+import { getCurrentSeason, getSeasons, normalizeSeason, normalizeSeasons } from "../api/seasons";
 
 const SeasonContext = createContext();
 
@@ -12,10 +12,12 @@ export const SeasonProvider = function ({ children }) {
     const [ seasons, setSeasons ] = useState([]);
 
     function activateSeason(season) {
-        setSeasons((current) => [
-            ...current.filter((item) => item.id !== season.id), season ,
-        ])
-        setSeasonId(season.id)
+        const normalizedSeason = normalizeSeason(season);
+        setSeasons((current) => normalizeSeasons([
+            normalizedSeason,
+            ...current,
+        ]))
+        setSeasonId(normalizedSeason.id)
     }
 
     useEffect(() => {
@@ -25,7 +27,7 @@ export const SeasonProvider = function ({ children }) {
                     getSeasons(),
                     getCurrentSeason(),
                 ]);
-                setSeasons(seasonList);
+                setSeasons(normalizeSeasons(seasonList));
                 setSeasonId(currentSeason?.id ?? null);
             } catch (error) {
                 console.error(error)
@@ -37,7 +39,7 @@ export const SeasonProvider = function ({ children }) {
     const selectedSeason = seasons.find((season) => season.id === seasonId) ?? null;
 
     return (
-        <SeasonContext.Provider value={{seasonId, setSeasonId, selectedSeason, activateSeason}}>
+        <SeasonContext.Provider value={{seasonId, setSeasonId, seasons, selectedSeason, activateSeason}}>
             {children}
         </SeasonContext.Provider>
     )

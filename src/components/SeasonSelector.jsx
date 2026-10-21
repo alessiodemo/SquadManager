@@ -1,13 +1,7 @@
-import { useEffect, useState } from 'react'
-import { Select } from 'flowbite-react'
-import { getSeasons } from '../api/seasons'
+import { useSeason } from '../context/seasonContext'
 
 export default function SeasonSelector({ value, onChange }) {
-  const [seasons, setSeasons] = useState([])
-
-  useEffect(() => {
-    getSeasons().then(setSeasons).catch(console.error)
-  }, [value])
+  const { seasons } = useSeason()
 
   return (
     <select
