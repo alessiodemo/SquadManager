@@ -104,6 +104,7 @@ create table if not exists season_table (
   goal_conceded int,
   goal_difference int,
   points int,
+  form text,
   UNIQUE (season_id, competition_code, type, team_external_id)
 );
 

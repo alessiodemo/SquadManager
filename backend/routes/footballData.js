@@ -227,6 +227,7 @@ router.post('/competitions/:code/standings/import', async (req, res) => {
       goalConceded: row.goalsAgainst,
       goalDifference: row.goalDifference,
       points: row.points,
+      form: row.form ?? null,
     })),
   )
 
@@ -239,8 +240,8 @@ router.post('/competitions/:code/standings/import', async (req, res) => {
       await client.query(
         `INSERT INTO season_table
           (season_id, competition_code, type, team_external_id, team_name, position,
-           match_played, win, draw, lose, goal_scored, goal_conceded, goal_difference, points)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+           match_played, win, draw, lose, goal_scored, goal_conceded, goal_difference, points, form)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
          ON CONFLICT (season_id, competition_code, type, team_external_id) DO UPDATE SET
            team_name = EXCLUDED.team_name,
            position = EXCLUDED.position,
@@ -251,7 +252,8 @@ router.post('/competitions/:code/standings/import', async (req, res) => {
            goal_scored = EXCLUDED.goal_scored,
            goal_conceded = EXCLUDED.goal_conceded,
            goal_difference = EXCLUDED.goal_difference,
-           points = EXCLUDED.points`,
+           points = EXCLUDED.points,
+           form = EXCLUDED.form`,
         [
           seasonId,
           code,
@@ -267,6 +269,7 @@ router.post('/competitions/:code/standings/import', async (req, res) => {
           row.goalConceded,
           row.goalDifference,
           row.points,
+          row.form,
         ],
       )
     }

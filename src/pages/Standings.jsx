@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Trophy, RefreshCw, AlertCircle, CheckCircle2, ChevronRight } from 'lucide-react'
-import { getStandings, getMatches } from '../api/matches'
+import { getStandings } from '../api/matches'
 import { importStandings } from '../api/standings'
 import { useSeason } from '../context/seasonContext'
 import { useTeam } from '../context/teamContext'
@@ -8,16 +8,13 @@ import Badge from '../components/Badge'
 
 const FORM_COUNT = 5
 
-function recentForm(matches) {
-  return [...matches]
-    .filter((m) => m.goals_for != null)
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .slice(0, FORM_COUNT)
-    .map((m) => {
-      if (m.goals_for > m.goals_against) return 'win'
-      if (m.goals_for === m.goals_against) return 'draw'
-      return 'loss'
-    })
+function parseForm(form) {
+  return String(form ?? '')
+    .split(',')
+    .map((result) => result.trim().toUpperCase())
+    .filter((result) => result === 'W' || result === 'D' || result === 'L')
+    .slice(-FORM_COUNT)
+    .map((result) => ({ W: 'win', D: 'draw', L: 'loss' })[result])
 }
 
 function getPositionIndicator(pos, total) {
@@ -29,7 +26,6 @@ function getPositionIndicator(pos, total) {
 
 export default function Standings() {
   const [rows, setRows] = useState([])
-  const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
   const [importing, setImporting] = useState(false)
   const [notification, setNotification] = useState(null)
@@ -44,12 +40,7 @@ export default function Standings() {
     }
     setLoading(true)
     try {
-      const [standings, matchData] = await Promise.all([
-        getStandings(sid, competitionCode),
-        getMatches(sid).catch(() => []),
-      ])
-
-      setMatches(matchData || [])
+      const standings = await getStandings(sid, competitionCode)
       setRows(
         (standings || [])
           .filter((row) => row.type === 'TOTAL')
@@ -64,6 +55,7 @@ export default function Standings() {
             gf: Number(row.goal_scored || 0),
             ga: Number(row.goal_conceded || 0),
             points: Number(row.points || 0),
+            form: parseForm(row.form),
           }))
       )
     } catch (e) {
@@ -114,8 +106,6 @@ export default function Standings() {
       setLoading(false)
     }
   }, [seasonId, competitionCode])
-
-  const ourForm = recentForm(matches)
 
   return (
     <div className="space-y-6">
@@ -257,10 +247,10 @@ export default function Standings() {
                       <td className="py-3 px-4 text-center hidden sm:table-cell">
                         {
                           <div className="flex items-center justify-center gap-1">
-                            {ourForm.length === 0 ? (
+                            {row.form.length === 0 ? (
                               <span className="text-xs text-sofa-dim">—</span>
                             ) : (
-                              ourForm.map((result, idx) => (
+                              row.form.map((result, idx) => (
                                 <Badge
                                   key={idx}
                                   variant={result}
