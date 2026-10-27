@@ -30,6 +30,9 @@ export const TeamProvider = function({ children }) {
             return;
         }
 
+        const normalizedTeamId = String(team.id);
+        setTeamId(normalizedTeamId);
+
         try {
             const season = await createSeasonContext(
                 competitionCode,
@@ -38,7 +41,6 @@ export const TeamProvider = function({ children }) {
                 team.name,
             );
             activateSeason(season);
-            setTeamId(String(team.id));
         } catch (error) {
             console.error(error);
         }

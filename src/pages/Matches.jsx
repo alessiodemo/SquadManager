@@ -165,13 +165,13 @@ export default function Matches() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-sofa-border">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-black text-white tracking-tight">Partite</h2>
+            <h2 className="text-2xl font-black text-white tracking-tight">Matches</h2>
             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-sofa-card border border-sofa-border text-sofa-muted">
-              {matches.length} totali
+              {matches.length} overall matches
             </span>
           </div>
           <p className="text-xs text-sofa-muted mt-0.5">
-            {selectedTeam ? `${selectedTeam.name} · Calendario e risultati` : 'Seleziona una squadra per visualizzare il calendario'}
+            {selectedTeam ? `${selectedTeam.name} · Calendar and results` : 'Select a team to visualize the calendar and results'}
           </p>
         </div>
 
@@ -182,7 +182,7 @@ export default function Matches() {
             className="inline-flex items-center gap-2 bg-sofa-card hover:bg-sofa-cardHover border border-sofa-border hover:border-sofa-borderLight text-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <RefreshCw size={14} className="text-sofa-muted" />
-            <span>{selectedTeam ? `Sincronizza ${selectedTeam.name}` : 'Sincronizza'}</span>
+            <span>{selectedTeam ? `Synchronize ${selectedTeam.name}` : 'Synchronize'}</span>
           </button>
           
           <button
@@ -191,7 +191,7 @@ export default function Matches() {
             className="inline-flex items-center gap-1.5 bg-sofa-blue hover:bg-sofa-blueHover text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md shadow-sofa-blue/25 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
           >
             <Plus size={15} strokeWidth={2.5} />
-            <span>Nuova Partita</span>
+            <span>Insert match manually</span>
           </button>
         </div>
       </div>
@@ -199,7 +199,7 @@ export default function Matches() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16 space-y-3">
           <div className="w-8 h-8 border-2 border-sofa-blue border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs text-sofa-muted">Caricamento partite...</p>
+          <p className="text-xs text-sofa-muted">Matches loading...</p>
         </div>
       ) : (
         <>

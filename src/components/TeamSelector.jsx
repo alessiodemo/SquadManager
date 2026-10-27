@@ -9,9 +9,9 @@ export default function TeamSelector() {
             id="team-select"
             value={teamId ?? ''}
             onChange={(e) => getSelectedTeam(e.target.value || null)}
-            aria-label="Seleziona club"
+            aria-label="Select a club"
         >
-            <option value="">Seleziona un club</option>
+            <option value="">Select a club</option>
             {
                 teams.map((t) => (
                     <option

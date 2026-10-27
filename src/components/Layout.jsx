@@ -51,13 +51,13 @@ export default function Layout() {
           <Card className="glass-panel border-sofa-border/80 p-3.5 space-y-3">
             <div>
               <label htmlFor="competition-select" className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-sofa-muted">
-                Lega
+                League
               </label>
               <CompetitionSelector />
             </div>
             <div>
               <label htmlFor="season-select" className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-sofa-muted">
-                Stagione
+                Season
               </label>
               <SeasonSelector value={seasonId} onChange={setSeasonId} />
             </div>
