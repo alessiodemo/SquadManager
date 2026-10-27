@@ -5,6 +5,7 @@ import { useTeam } from '../context/teamContext'
 import SeasonSelector from './SeasonSelector'
 import CompetitionSelector from './CompetitionSelector'
 import TeamSelector from './TeamSelector'
+import { Card } from './ui/card'
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -24,18 +25,18 @@ export default function Layout() {
       {/* Sidebar Navigation */}
       <aside
         aria-label="Navigazione principale"
-        className="w-full shrink-0 border-b lg:border-b-0 lg:border-r border-sofa-border bg-[#0b1320] lg:h-screen lg:w-64 lg:sticky lg:top-0 flex flex-col z-20"
+        className="w-full shrink-0 border-b border-sofa-border/80 bg-[#0b1320]/95 backdrop-blur lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-72 lg:flex-col lg:border-b-0 lg:border-r z-20"
       >
         {/* Brand Header */}
-        <div className="border-b border-sofa-border px-5 py-4 bg-[#0b1320]">
+        <div className="border-b border-sofa-border/80 px-5 py-5 bg-[#0b1320]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sofa-blue to-blue-700 flex items-center justify-center text-white shadow-md shadow-sofa-blue/30 shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-sofa-blue to-blue-700 flex items-center justify-center text-white shadow-lg shadow-sofa-blue/25 shrink-0">
               <Activity size={20} strokeWidth={2.5} />
             </div>
             <div>
               <div className="flex items-center gap-1 leading-none">
                 <span className="font-black text-base tracking-tight text-white">SQUAD</span>
-                <span className="font-black text-base tracking-tight text-sofa-blueLight">SCORE</span>
+                <span className="font-black text-base tracking-tight text-sofa-blueLight">MANAGER</span>
               </div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-sofa-muted mt-1 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -46,33 +47,33 @@ export default function Layout() {
         </div>
 
         {/* Global Selectors */}
-        <div className="border-b border-sofa-border p-3.5 bg-[#0e1726]/40">
-          <div className="bg-sofa-card border border-sofa-border rounded-xl p-3 space-y-2.5 shadow-sm">
+        <div className="border-b border-sofa-border/80 p-4 bg-[#0e1726]/40">
+          <Card className="glass-panel border-sofa-border/80 p-3.5 space-y-3">
             <div>
-              <label htmlFor="competition-select" className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <label htmlFor="competition-select" className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-sofa-muted">
                 Lega
               </label>
               <CompetitionSelector />
             </div>
             <div>
-              <label htmlFor="season-select" className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <label htmlFor="season-select" className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-sofa-muted">
                 Stagione
               </label>
               <SeasonSelector value={seasonId} onChange={setSeasonId} />
             </div>
             {competitionCode && selectedSeason?.start_year && (
               <div>
-                <label htmlFor="team-select" className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <label htmlFor="team-select" className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-sofa-muted">
                   Club
                 </label>
                 <TeamSelector />
               </div>
             )}
-          </div>
+          </Card>
         </div>
 
         {/* Nav Items */}
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
           {navItems.map(({ to, label, icon: Icon }) => {
             const active = to === '/' ? pathname === '/' : pathname.startsWith(to)
 
@@ -80,7 +81,7 @@ export default function Layout() {
               <NavLink
                 key={to}
                 to={to}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 ${
                   active
                     ? 'bg-sofa-blue text-white shadow-md shadow-sofa-blue/25'
                     : 'text-slate-400 hover:text-white hover:bg-sofa-cardHover'
@@ -96,7 +97,7 @@ export default function Layout() {
         {/* Active Club Footer Pill */}
         {selectedTeam && (
           <div className="p-3 border-t border-sofa-border bg-[#0b1320]">
-            <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-sofa-card border border-sofa-border">
+            <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-sofa-card border border-sofa-border">
               <div className="w-2 h-2 rounded-full bg-sofa-blue shrink-0" />
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-sofa-muted">Club Attivo</p>
@@ -108,7 +109,7 @@ export default function Layout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="min-w-0 flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+      <main className="min-w-0 flex-1 overflow-auto bg-[radial-gradient(circle_at_top_right,rgba(27,100,224,0.08),transparent_30rem)] p-4 sm:p-6 lg:p-10">
         <div className="max-w-6xl mx-auto">
           <Outlet />
         </div>

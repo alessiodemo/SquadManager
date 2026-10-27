@@ -1,22 +1,22 @@
 import { useSeason } from '../context/seasonContext'
+import { Select } from './ui/select'
 
 export default function SeasonSelector({ value, onChange }) {
   const { seasons } = useSeason()
 
   return (
-    <select
+    <Select
       id="season-select"
       value={value ?? ''}
       onChange={(e) => onChange(e.target.value || null)}
-      className="w-full bg-[#0b1320] border border-[#1e2f4a] text-slate-100 text-xs rounded-lg px-3 py-2 focus:border-sofa-blue focus:ring-1 focus:ring-sofa-blue outline-none transition-colors cursor-pointer"
       aria-label="Seleziona stagione"
     >
-      <option value="" className="bg-[#0b1320] text-slate-400">Select a Season</option>
+      <option value="">Seleziona una stagione</option>
       {seasons.map((s) => (
-        <option key={s.id} value={s.id} className="bg-[#0b1320] text-slate-100">
+        <option key={s.id} value={s.id}>
           {s.name}
         </option>
       ))}
-    </select>
+    </Select>
   )
 }

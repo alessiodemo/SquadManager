@@ -5,7 +5,8 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{js,jsx}",
-    ".flowbite-react/class-list.json"
+    ".flowbite-react/class-list.json",
+    ".flowbite-react\\class-list.json"
   ],
   theme: {
     extend: {
@@ -16,10 +17,10 @@ export default {
         },
         sofa: {
           bg: '#0b1320',        // Sofascore deep sports navy
-          card: '#131f33',      // Card surface
-          cardHover: '#182740', // Hover surface
-          border: '#1e2f4a',    // Subtle border
-          borderLight: '#2a3f62',
+          card: 'rgba(19, 31, 51, 0.68)',      // Glass card surface
+          cardHover: 'rgba(30, 52, 83, 0.78)', // Hover surface
+          border: 'rgba(108, 146, 202, 0.2)',  // Glass border
+          borderLight: 'rgba(125, 166, 230, 0.38)',
           blue: '#1b64e0',      // Sofascore signature blue
           blueHover: '#1552bc',
           blueLight: '#3b82f6',
@@ -31,7 +32,7 @@ export default {
           text: '#f8fafc',      // Primary text
           muted: '#94a3b8',     // Secondary text
           dim: '#64748b',       // Dim text
-          dark: '#080d16',      // Deepest contrast (inputs, score boxes)
+          dark: 'rgba(5, 11, 22, 0.78)',      // Deepest contrast (inputs, score boxes)
         },
       },
     },

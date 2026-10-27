@@ -10,7 +10,7 @@ export default function Modal({ title, onClose, children, maxWidth = 'max-w-lg' 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className={`bg-sofa-card border border-sofa-border shadow-2xl rounded-2xl w-full ${maxWidth} my-8 overflow-hidden transform transition-all`}>
+      <div className={`glass-panel rounded-2xl w-full ${maxWidth} my-8 overflow-hidden transform transition-all`}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-sofa-border bg-sofa-bg/40">
           <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-sofa-blue" />
