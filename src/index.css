@@ -41,4 +41,25 @@
   .glass-panel {
     @apply border border-sofa-border bg-sofa-card shadow-xl shadow-black/10 backdrop-blur-xl;
   }
+
+  .page-header {
+    @apply relative overflow-hidden rounded-2xl border border-sofa-border bg-sofa-card px-5 py-5 shadow-xl shadow-black/10 backdrop-blur-xl sm:px-6;
+  }
+
+  .page-header::after {
+    content: '';
+    @apply pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-sofa-blue/10 blur-3xl;
+  }
+
+  .data-surface {
+    @apply overflow-hidden rounded-2xl border border-sofa-border bg-sofa-card shadow-xl shadow-black/10 backdrop-blur-xl;
+  }
+
+  .action-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-sofa-border bg-sofa-card px-3.5 py-2 text-xs font-bold text-slate-200 shadow-sm transition-all hover:-translate-y-0.5 hover:border-sofa-borderLight hover:bg-sofa-cardHover disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .primary-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-sofa-blue px-4 py-2 text-xs font-bold text-white shadow-lg shadow-sofa-blue/25 transition-all hover:-translate-y-0.5 hover:bg-sofa-blueHover disabled:cursor-not-allowed disabled:opacity-40;
+  }
 }

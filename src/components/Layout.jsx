@@ -28,7 +28,7 @@ export default function Layout() {
         className="w-full shrink-0 border-b border-sofa-border/80 bg-[#0b1320]/95 backdrop-blur lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-72 lg:flex-col lg:border-b-0 lg:border-r z-20"
       >
         {/* Brand Header */}
-        <div className="border-b border-sofa-border/80 px-5 py-5 bg-[#0b1320]">
+        <div className="border-b border-sofa-border/80 bg-[#0b1320]/80 px-5 py-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-sofa-blue to-blue-700 flex items-center justify-center text-white shadow-lg shadow-sofa-blue/25 shrink-0">
               <Activity size={20} strokeWidth={2.5} />
@@ -47,7 +47,7 @@ export default function Layout() {
         </div>
 
         {/* Global Selectors */}
-        <div className="border-b border-sofa-border/80 p-4 bg-[#0e1726]/40">
+        <div className="border-b border-sofa-border/80 bg-[#0e1726]/30 p-4">
           <Card className="glass-panel border-sofa-border/80 p-3.5 space-y-3">
             <div>
               <label htmlFor="competition-select" className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-sofa-muted">
@@ -83,8 +83,8 @@ export default function Layout() {
                 to={to}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 ${
                   active
-                    ? 'bg-sofa-blue text-white shadow-md shadow-sofa-blue/25'
-                    : 'text-slate-400 hover:text-white hover:bg-sofa-cardHover'
+                    ? 'bg-sofa-blue text-white shadow-lg shadow-sofa-blue/25'
+                    : 'text-slate-400 hover:-translate-y-0.5 hover:bg-sofa-cardHover hover:text-white'
                 }`}
               >
                 <Icon size={18} strokeWidth={active ? 2.5 : 2} className={active ? 'text-white' : 'text-slate-400'} />
@@ -96,7 +96,7 @@ export default function Layout() {
 
         {/* Active Club Footer Pill */}
         {selectedTeam && (
-          <div className="p-3 border-t border-sofa-border bg-[#0b1320]">
+          <div className="border-t border-sofa-border bg-[#0b1320]/70 p-3">
             <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-sofa-card border border-sofa-border">
               <div className="w-2 h-2 rounded-full bg-sofa-blue shrink-0" />
               <div className="min-w-0">

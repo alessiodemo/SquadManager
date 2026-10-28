@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Sparkles, Plus, RefreshCw, Radio, Edit2, Trash2, Calendar, CheckCircle2 } from 'lucide-react'
+import { Sparkles, Plus, RefreshCw, Radio, Edit2, Trash2, Calendar, CheckCircle2, AlertCircle } from 'lucide-react'
 import { getMatches, getMatchContext, upsertMatch, deleteMatch, updateScore, importCompetitionMatches } from '../api/matches'
 import { supabase } from '../lib/supabase'
 import Modal from '../components/Modal'
@@ -35,6 +35,12 @@ export default function Matches() {
   const [contextLoading, setContextLoading] = useState(false)
   const [contextMatch, setContextMatch] = useState(null)
   const [showContextModal, setShowContextModal] = useState(false)
+  const [syncState, setSyncState] = useState({
+    status: 'idle',
+    imported: null,
+    message: null,
+    completedAt: null,
+  })
   const load = useCallback(async (sid) => {
     if (!sid) {
       setMatches([])
@@ -137,9 +143,20 @@ export default function Matches() {
 
   async function handleImport() {
     if (!selectedSeason || !selectedTeam || !competitionCode) {
-      alert('Select a competition, season, and club before importing.')
+      setSyncState((current) => ({
+        ...current,
+        status: 'error',
+        message: 'Select a competition, season, and club before importing.',
+      }))
       return
     }
+
+    setSyncState({
+      status: 'syncing',
+      imported: null,
+      message: 'Fetching the latest matches...',
+      completedAt: null,
+    })
 
     try {
       const result = await importCompetitionMatches({
@@ -150,10 +167,19 @@ export default function Matches() {
       })
 
       await load(seasonId)
-
-      alert(`Imported ${result.imported} matches.`)
+      setSyncState({
+        status: 'success',
+        imported: result.imported ?? 0,
+        message: `Synchronization completed. ${result.imported ?? 0} matches imported or updated.`,
+        completedAt: new Date(),
+      })
     } catch (error) {
-      alert(getErrorMessage(error, 'Unable to synchronize matches.'))
+      setSyncState({
+        status: 'error',
+        imported: null,
+        message: getErrorMessage(error, 'Unable to synchronize matches.'),
+        completedAt: null,
+      })
     }
   }
 
@@ -163,7 +189,7 @@ export default function Matches() {
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-sofa-border">
+      <div className="page-header flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-black text-white tracking-tight">Matches</h2>
@@ -179,23 +205,54 @@ export default function Matches() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={handleImport}
-            disabled={!seasonId || !selectedTeam || !competitionCode}
-            className="inline-flex items-center gap-2 bg-sofa-card hover:bg-sofa-cardHover border border-sofa-border hover:border-sofa-borderLight text-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            disabled={!seasonId || !selectedTeam || !competitionCode || syncState.status === 'syncing'}
+            className="action-button"
           >
-            <RefreshCw size={14} className="text-sofa-muted" />
-            <span>{selectedTeam ? `Synchronize ${selectedTeam.name}` : 'Synchronize'}</span>
+            <RefreshCw size={14} className={`text-sofa-muted ${syncState.status === 'syncing' ? 'animate-spin' : ''}`} />
+            <span>{syncState.status === 'syncing' ? 'Synchronizing...' : selectedTeam ? `Synchronize ${selectedTeam.name}` : 'Synchronize'}</span>
           </button>
           
           <button
             onClick={openNew}
             disabled={!seasonId}
-            className="inline-flex items-center gap-1.5 bg-sofa-blue hover:bg-sofa-blueHover text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md shadow-sofa-blue/25 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+            className="primary-button shrink-0"
           >
             <Plus size={15} strokeWidth={2.5} />
             <span>Insert match manually</span>
           </button>
         </div>
       </div>
+
+      {syncState.status !== 'idle' && (
+        <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm ${
+          syncState.status === 'success'
+            ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-200'
+            : syncState.status === 'error'
+              ? 'border-rose-500/25 bg-rose-500/10 text-rose-200'
+              : 'border-sofa-blue/25 bg-sofa-blue/10 text-blue-100'
+        }`}>
+          {syncState.status === 'success' ? (
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+          ) : syncState.status === 'error' ? (
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
+          ) : (
+            <RefreshCw className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-sofa-blueLight" />
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold">{syncState.message}</p>
+            {syncState.completedAt && (
+              <p className="mt-1 text-xs opacity-70">
+                Last updated {syncState.completedAt.toLocaleString('en-GB')}
+              </p>
+            )}
+          </div>
+          {syncState.status === 'error' && (
+            <button type="button" onClick={handleImport} className="text-xs font-bold underline underline-offset-2">
+              Try again
+            </button>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16 space-y-3">
@@ -210,20 +267,20 @@ export default function Matches() {
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-black uppercase tracking-wider text-sofa-muted flex items-center gap-2">
                   <Calendar size={14} className="text-sofa-blueLight" />
-                  <span>Calendario ({upcoming.length})</span>
+                  <span>Schedule ({upcoming.length})</span>
                 </h3>
               </div>
               <div className="space-y-2">
                 {upcoming.map((m) => (
                   <div
                     key={m.id}
-                    className="bg-sofa-card border border-sofa-border hover:border-sofa-borderLight rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-150 shadow-sm"
+                    className="glass-panel rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-150 shadow-sm"
                   >
                     <div className="flex items-center gap-3">
                       <MatchVenueIcon isHome={m.is_home} />
                       <div>
                         <p className="font-bold text-white text-sm tracking-tight flex items-center gap-2">
-                          <span>{m.is_home ? (selectedTeam?.name || 'Casa') : m.opponent}</span>
+                          <span>{m.is_home ? (selectedTeam?.name || 'Home') : m.opponent}</span>
                           <span className="text-sofa-dim font-normal text-xs">vs</span>
                           <span>{m.is_home ? m.opponent : (selectedTeam?.name || 'Ospite')}</span>
                         </p>
@@ -279,14 +336,14 @@ export default function Matches() {
 
                       <button
                         onClick={() => openEdit(m)}
-                        title="Modifica"
+                        title="Edit"
                         className="p-1.5 text-sofa-muted hover:text-white hover:bg-sofa-cardHover rounded-lg transition-colors"
                       >
                         <Edit2 size={15} />
                       </button>
                       <button
                         onClick={() => handleDelete(m.id)}
-                        title="Elimina"
+                        title="Delete"
                         className="p-1.5 text-sofa-muted hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                       >
                         <Trash2 size={15} />
@@ -304,7 +361,7 @@ export default function Matches() {
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-black uppercase tracking-wider text-sofa-muted flex items-center gap-2">
                   <CheckCircle2 size={14} className="text-emerald-400" />
-                  <span>Risultati ({played.length})</span>
+                  <span>Results ({played.length})</span>
                 </h3>
               </div>
               <div className="space-y-2">
@@ -348,14 +405,14 @@ export default function Matches() {
 
                         <button
                           onClick={() => openEdit(m)}
-                          title="Modifica"
+                          title="Edit"
                           className="p-1.5 text-sofa-muted hover:text-white hover:bg-sofa-cardHover rounded-lg transition-colors"
                         >
                           <Edit2 size={15} />
                         </button>
                         <button
                           onClick={() => handleDelete(m.id)}
-                          title="Elimina"
+                          title="Delete"
                           className="p-1.5 text-sofa-muted hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                         >
                           <Trash2 size={15} />
@@ -381,7 +438,7 @@ export default function Matches() {
       {/* AI Match Context Modal */}
       {showContextModal && (
         <Modal
-          title={`Analisi Sofascore AI — vs ${contextMatch?.opponent || 'Partita'}`}
+          title={`Sofascore AI analysis — vs ${contextMatch?.opponent || 'Match'}`}
           onClose={() => {
             setShowContextModal(false)
             setContext(null)
@@ -414,7 +471,7 @@ export default function Matches() {
                   }}
                   className="px-5 py-2 bg-sofa-card hover:bg-sofa-cardHover border border-sofa-border text-white text-xs font-bold rounded-xl transition-colors"
                 >
-                  Chiudi
+                  Close
                 </button>
               </div>
             </div>
@@ -424,7 +481,7 @@ export default function Matches() {
 
       {/* Add / Edit Match Modal */}
       {showModal && (
-        <Modal title={editingId ? 'Modifica partita' : 'Nuova partita'} onClose={() => setShowModal(false)}>
+        <Modal title={editingId ? 'Edit match' : 'New match'} onClose={() => setShowModal(false)}>
           <div className="space-y-4">
             <div>
               <label className="block text-[11px] font-bold text-sofa-muted uppercase tracking-wider mb-1">Avversario</label>
@@ -446,7 +503,7 @@ export default function Matches() {
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-bold text-sofa-muted uppercase tracking-wider mb-1">Stadio / Venue</label>
+                <label className="block text-[11px] font-bold text-sofa-muted uppercase tracking-wider mb-1">Stadium / Venue</label>
                 <input
                   value={form.venue}
                   onChange={(e) => setForm((f) => ({ ...f, venue: e.target.value }))}
@@ -464,7 +521,7 @@ export default function Matches() {
                 className="w-4 h-4 accent-sofa-blue rounded cursor-pointer"
               />
               <label htmlFor="home" className="text-xs font-semibold text-slate-200 cursor-pointer">
-                Partita in casa (Home)
+                Home match
               </label>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -504,7 +561,7 @@ export default function Matches() {
                 onClick={handleSave}
                 className="bg-sofa-blue hover:bg-sofa-blueHover text-white text-xs font-bold px-5 py-2 rounded-xl transition-all shadow-md shadow-sofa-blue/25"
               >
-                Salva Partita
+                Save match
               </button>
             </div>
           </div>

@@ -188,7 +188,7 @@ export default function Squad() {
   return (
     <div className="space-y-6">
       {/* Header bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-sofa-card border border-sofa-border p-4 sm:p-5 rounded-2xl shadow-sm">
+      <div className="page-header flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sofa-blue/20 to-blue-700/20 border border-sofa-blue/30 flex items-center justify-center text-sofa-blue shrink-0">
             <Users className="w-5 h-5" />
@@ -291,7 +291,7 @@ export default function Squad() {
           <p className="text-sm font-medium text-sofa-muted">Caricamento rosa...</p>
         </div>
       ) : (
-        <div className="bg-sofa-card border border-sofa-border rounded-2xl shadow-sm overflow-hidden">
+        <div className="data-surface">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>

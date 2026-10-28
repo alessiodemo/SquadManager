@@ -111,7 +111,7 @@ export default function Standings() {
   return (
     <div className="space-y-6">
       {/* Header bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-sofa-card border border-sofa-border p-4 sm:p-5 rounded-2xl shadow-sm">
+      <div className="page-header flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-700/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
             <Trophy className="w-5 h-5" />
@@ -127,7 +127,7 @@ export default function Standings() {
         <button
           onClick={handleImportStandings}
           disabled={!seasonId || !selectedSeason || !competitionCode || !selectedTeam || importing}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-sofa-cardHover hover:bg-sofa-border border border-sofa-border hover:border-sofa-borderLight disabled:opacity-40 disabled:hover:bg-sofa-cardHover text-sofa-text text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm group self-start sm:self-auto cursor-pointer"
+          className="action-button self-start uppercase tracking-wider sm:self-auto"
         >
           <RefreshCw className={`w-3.5 h-3.5 text-sofa-blue ${importing ? 'animate-spin' : 'group-hover:rotate-45 transition-transform'}`} />
           <span>{importing ? 'Sincronizzazione...' : 'Sincronizza Classifica'}</span>
@@ -158,7 +158,7 @@ export default function Standings() {
           <p className="text-sm font-medium text-sofa-muted">Caricamento classifica in corso...</p>
         </div>
       ) : (
-        <div className="bg-sofa-card border border-sofa-border rounded-2xl shadow-sm overflow-hidden">
+        <div className="data-surface">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>

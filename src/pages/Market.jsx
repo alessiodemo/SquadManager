@@ -145,7 +145,7 @@ export default function Market() {
   return (
     <div className="space-y-6">
       {/* Header bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-sofa-card border border-sofa-border p-4 sm:p-5 rounded-2xl shadow-sm">
+      <div className="page-header flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-700/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
             <Coins className="w-5 h-5" />
@@ -282,7 +282,7 @@ export default function Market() {
 
       {/* Transfers List */}
       {loading ? (
-        <div className="bg-sofa-card border border-sofa-border rounded-2xl p-12 text-center">
+        <div className="data-surface p-12 text-center">
           <div className="w-8 h-8 border-2 border-sofa-blue border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-sm font-medium text-sofa-muted">Caricamento operazioni di mercato...</p>
         </div>
