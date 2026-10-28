@@ -5,6 +5,7 @@ import { importStandings } from '../api/standings'
 import { useSeason } from '../context/seasonContext'
 import { useTeam } from '../context/teamContext'
 import Badge from '../components/Badge'
+import { getErrorMessage } from '../lib/errors'
 
 const FORM_COUNT = 5
 
@@ -69,7 +70,7 @@ export default function Standings() {
     if (!seasonId || !selectedSeason || !competitionCode || !selectedTeam || importing) {
       setNotification({
         type: 'error',
-        message: 'Seleziona una lega, stagione e club per importare la classifica.',
+        message: 'Select a competition, season, and club to import the standings.',
       })
       return
     }
@@ -91,7 +92,7 @@ export default function Standings() {
     } catch (error) {
       setNotification({
         type: 'error',
-        message: `Errore durante l'importazione: ${error.message}`,
+        message: getErrorMessage(error, 'Unable to import the standings.'),
       })
     } finally {
       setImporting(false)

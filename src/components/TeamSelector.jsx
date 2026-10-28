@@ -1,5 +1,6 @@
 import { useTeam } from '../context/teamContext'
 import { Select } from './ui/select'
+import { ErrorNotice } from './ui/error-notice'
 
 export default function TeamSelector() {
     const { teams, teamsLoading, teamsError, teamId, getSelectedTeam } = useTeam()
@@ -10,11 +11,11 @@ export default function TeamSelector() {
                 id="team-select"
                 value={teamId ?? ''}
                 onChange={(e) => getSelectedTeam(e.target.value || null)}
-                aria-label="Seleziona club"
+                aria-label="Select club"
                 disabled={teamsLoading || Boolean(teamsError)}
             >
                 <option value="">
-                    {teamsLoading ? 'Caricamento club...' : 'Seleziona un club'}
+                    {teamsLoading ? 'Loading clubs...' : 'Select a club'}
                 </option>
                 {teams.map((t) => (
                     <option key={t.id} value={t.id}>
@@ -22,10 +23,10 @@ export default function TeamSelector() {
                     </option>
                 ))}
             </Select>
-            {teamsError && <p className="mt-1.5 text-[10px] font-medium text-rose-300">{teamsError}</p>}
+            <ErrorNotice message={teamsError} />
             {!teamsLoading && !teamsError && !teams.length && (
                 <p className="mt-1.5 text-[10px] font-medium text-sofa-muted">
-                    Nessun club disponibile per la selezione corrente.
+                    No clubs available for the current selection.
                 </p>
             )}
         </>

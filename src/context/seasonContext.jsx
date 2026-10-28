@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { getCurrentSeason, getSeasons, normalizeSeason, normalizeSeasons } from "../api/seasons";
+import { getErrorMessage } from "../lib/errors";
 
 const SeasonContext = createContext();
 
@@ -35,7 +36,7 @@ export const SeasonProvider = function ({ children }) {
                 setSeasonId(currentSeason?.id ?? null);
             } catch (error) {
                 console.error(error)
-                setSeasonsError('Impossibile caricare le stagioni.');
+                setSeasonsError(getErrorMessage(error, 'Unable to load seasons.'));
             } finally {
                 setSeasonsLoading(false);
             }

@@ -16,6 +16,7 @@ import Modal from '../components/Modal'
 import Badge from '../components/Badge'
 import { useSeason } from '../context/seasonContext'
 import { useTeam } from '../context/teamContext'
+import { getErrorMessage } from '../lib/errors'
 
 const ROLES = ['POR', 'DIF', 'CEN', 'ALA', 'ATT']
 const ROLE_TABS = [
@@ -126,7 +127,7 @@ export default function Squad() {
       })
       load(seasonId)
     } catch (e) {
-      setBanner({ type: 'error', text: e.message || 'Impossibile salvare il giocatore.' })
+      setBanner({ type: 'error', text: getErrorMessage(e, 'Unable to save the player.') })
     }
   }
 
@@ -147,7 +148,7 @@ export default function Squad() {
         text: `${result.team}: importati ${result.imported} giocatori per la stagione ${result.season}/${String(result.season + 1).slice(-2)}${result.skipped ? ` (${result.skipped} non importati)` : ''}.`,
       })
     } catch (e) {
-      setBanner({ type: 'error', text: e.message || 'Impossibile importare la rosa.' })
+      setBanner({ type: 'error', text: getErrorMessage(e, 'Unable to import the squad.') })
     } finally {
       setImporting(false)
     }
@@ -160,7 +161,7 @@ export default function Squad() {
       setBanner({ type: 'success', text: 'Giocatore rimosso dalla rosa.' })
       load(seasonId)
     } catch (e) {
-      setBanner({ type: 'error', text: e.message || 'Impossibile eliminare il giocatore.' })
+      setBanner({ type: 'error', text: getErrorMessage(e, 'Unable to delete the player.') })
     }
   }
 

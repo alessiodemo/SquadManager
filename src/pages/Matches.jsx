@@ -7,6 +7,7 @@ import Badge from '../components/Badge'
 import { useSeason } from '../context/seasonContext'
 import { useTeam } from '../context/teamContext'
 import MatchVenueIcon from '../components/MatchVenueIcon'
+import { getErrorMessage } from '../lib/errors'
 
 function matchResult(m) {
   if (m.goals_for == null) return null
@@ -97,7 +98,7 @@ export default function Matches() {
       setShowModal(false)
       load(seasonId)
     } catch (e) {
-      alert(e.message)
+      alert(getErrorMessage(e, 'Unable to save the match.'))
     }
   }
 
@@ -113,7 +114,7 @@ export default function Matches() {
       setLiveId(null)
       load(seasonId)
     } catch (e) {
-      alert(e.message)
+      alert(getErrorMessage(e, 'Unable to update the score.'))
     }
   }
 
@@ -127,7 +128,7 @@ export default function Matches() {
       const data = await getMatchContext(match.id)
       setContext(data)
     } catch (e) {
-      alert(e.message)
+      alert(getErrorMessage(e, 'Unable to load the match context.'))
       setShowContextModal(false)
     } finally {
       setContextLoading(false)
@@ -136,7 +137,7 @@ export default function Matches() {
 
   async function handleImport() {
     if (!selectedSeason || !selectedTeam || !competitionCode) {
-      alert('Seleziona una lega, una stagione e un club prima di importare.')
+      alert('Select a competition, season, and club before importing.')
       return
     }
 
@@ -150,9 +151,9 @@ export default function Matches() {
 
       await load(seasonId)
 
-      alert(`Imported ${result.imported} matches`)
+      alert(`Imported ${result.imported} matches.`)
     } catch (error) {
-      alert(error.message)
+      alert(getErrorMessage(error, 'Unable to synchronize matches.'))
     }
   }
 

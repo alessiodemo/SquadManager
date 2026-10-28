@@ -1,5 +1,6 @@
 import { useTeam } from "../context/teamContext"
 import { Select } from "./ui/select"
+import { ErrorNotice } from "./ui/error-notice"
 
 export default function CompetitionSelector() {
     const {
@@ -16,11 +17,11 @@ export default function CompetitionSelector() {
                 id="competition-select"
                 value={competitionCode ?? ''}
                 onChange={(e) => setCompetitionCode(e.target.value || null)}
-                aria-label="Seleziona competizione"
+                aria-label="Select competition"
                 disabled={competitionsLoading || Boolean(competitionsError)}
             >
                 <option value="">
-                    {competitionsLoading ? 'Caricamento competizioni...' : 'Seleziona una competizione'}
+                    {competitionsLoading ? 'Loading competitions...' : 'Select a competition'}
                 </option>
                 {competitions.map((c) => (
                     <option key={c.id} value={c.code}>
@@ -28,7 +29,7 @@ export default function CompetitionSelector() {
                     </option>
                 ))}
             </Select>
-            {competitionsError && <p className="mt-1.5 text-[10px] font-medium text-rose-300">{competitionsError}</p>}
+            <ErrorNotice message={competitionsError} />
         </>
     )
 }

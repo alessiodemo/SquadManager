@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { getFootballDataCompetitions, getFootballDataTeamsForCompetition } from "../api/footballData";
 import { useSeason } from "./seasonContext";
 import { createSeasonContext } from "../api/seasons";
+import { getErrorMessage } from "../lib/errors";
 
 const TeamContext = createContext();
 
@@ -60,7 +61,7 @@ export const TeamProvider = function({ children }) {
                 setCompetitions(competitions)
             } catch (error) {
                 console.error(error)
-                setCompetitionsError('Impossibile caricare le competizioni.');
+                setCompetitionsError(getErrorMessage(error, 'Unable to load competitions.'));
             } finally {
                 setCompetitionsLoading(false);
             }
@@ -90,7 +91,7 @@ export const TeamProvider = function({ children }) {
             } catch (error) {
                 if (!cancelled) {
                     console.error(error);
-                    setTeamsError('Impossibile caricare i club per questa competizione.');
+                    setTeamsError(getErrorMessage(error, 'Unable to load clubs for this competition.'));
                 }
             } finally {
                 if (!cancelled) setTeamsLoading(false);

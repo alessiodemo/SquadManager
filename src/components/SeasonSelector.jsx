@@ -1,5 +1,6 @@
 import { useSeason } from '../context/seasonContext'
 import { Select } from './ui/select'
+import { ErrorNotice } from './ui/error-notice'
 
 export default function SeasonSelector({ value, onChange }) {
   const { seasons, seasonsLoading, seasonsError } = useSeason()
@@ -10,11 +11,11 @@ export default function SeasonSelector({ value, onChange }) {
         id="season-select"
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value || null)}
-        aria-label="Seleziona stagione"
+        aria-label="Select season"
         disabled={seasonsLoading || Boolean(seasonsError)}
       >
         <option value="">
-          {seasonsLoading ? 'Caricamento stagioni...' : 'Seleziona una stagione'}
+          {seasonsLoading ? 'Loading seasons...' : 'Select a season'}
         </option>
         {seasons.map((s) => (
           <option key={s.id} value={s.id}>
@@ -22,7 +23,7 @@ export default function SeasonSelector({ value, onChange }) {
           </option>
         ))}
       </Select>
-      {seasonsError && <p className="mt-1.5 text-[10px] font-medium text-rose-300">{seasonsError}</p>}
+      <ErrorNotice message={seasonsError} />
     </>
   )
 }

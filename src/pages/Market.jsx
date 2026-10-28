@@ -16,6 +16,7 @@ import { getSquadWithStats } from '../api/players'
 import Modal from '../components/Modal'
 import Badge from '../components/Badge'
 import { useSeason } from '../context/seasonContext'
+import { getErrorMessage } from '../lib/errors'
 
 const emptyForm = {
   player_id: '',
@@ -93,7 +94,7 @@ export default function Market() {
 
   async function handleSave() {
     if (!form.transfer_date) {
-      setBanner({ type: 'error', text: 'Seleziona una data di trasferimento.' })
+      setBanner({ type: 'error', text: 'Select a transfer date.' })
       return
     }
 
@@ -116,7 +117,7 @@ export default function Market() {
       })
       load(seasonId)
     } catch (e) {
-      setBanner({ type: 'error', text: e.message || 'Impossibile salvare il trasferimento.' })
+      setBanner({ type: 'error', text: getErrorMessage(e, 'Unable to save the transfer.') })
     }
   }
 
@@ -127,7 +128,7 @@ export default function Market() {
       setBanner({ type: 'success', text: 'Operazione eliminata.' })
       load(seasonId)
     } catch (e) {
-      setBanner({ type: 'error', text: e.message || 'Impossibile cancellare il trasferimento.' })
+      setBanner({ type: 'error', text: getErrorMessage(e, 'Unable to delete the transfer.') })
     }
   }
 
