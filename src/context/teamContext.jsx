@@ -12,8 +12,12 @@ export function useTeam() {
 export const TeamProvider = function({ children }) {
     const [ teamId, setTeamId ] = useState(null);
     const [ competitions, setCompetitions ] = useState([]);
+    const [ competitionsLoading, setCompetitionsLoading ] = useState(true);
+    const [ competitionsError, setCompetitionsError ] = useState(null);
     const [ competitionCode, setCompetitionCode ] = useState(null);
     const [ teams, setTeams ] = useState([]);
+    const [ teamsLoading, setTeamsLoading ] = useState(false);
+    const [ teamsError, setTeamsError ] = useState(null);
     const { selectedSeason, activateSeason } = useSeason();
 
     const selectedTeam = teams.find((team) => String(team.id) === String(teamId)) ?? null;
@@ -49,11 +53,16 @@ export const TeamProvider = function({ children }) {
 
     useEffect(() => {
         async function loadCompetitions() {
+            setCompetitionsLoading(true);
+            setCompetitionsError(null);
             try {
                 const competitions = await getFootballDataCompetitions();
                 setCompetitions(competitions)
             } catch (error) {
                 console.error(error)
+                setCompetitionsError('Impossibile caricare le competizioni.');
+            } finally {
+                setCompetitionsLoading(false);
             }
         }
         loadCompetitions();
@@ -62,11 +71,16 @@ export const TeamProvider = function({ children }) {
     useEffect(() => {
         setTeams([]);
         setTeamId(null);
+        setTeamsError(null);
 
-        if (!competitionCode || !selectedSeason?.start_year) return;
+        if (!competitionCode || !selectedSeason?.start_year) {
+            setTeamsLoading(false);
+            return;
+        }
 
         let cancelled = false;
         async function loadTeams() {
+            setTeamsLoading(true);
             try {
                 const teamList = await getFootballDataTeamsForCompetition(
                     competitionCode,
@@ -74,7 +88,12 @@ export const TeamProvider = function({ children }) {
                 );
                 if (!cancelled) setTeams(teamList);
             } catch (error) {
-                if (!cancelled) console.error(error);
+                if (!cancelled) {
+                    console.error(error);
+                    setTeamsError('Impossibile caricare i club per questa competizione.');
+                }
+            } finally {
+                if (!cancelled) setTeamsLoading(false);
             }
         }
 
@@ -90,9 +109,13 @@ export const TeamProvider = function({ children }) {
             teamId,
             setTeamId,
             competitions,
+            competitionsLoading,
+            competitionsError,
             competitionCode,
             setCompetitionCode,
             teams,
+            teamsLoading,
+            teamsError,
             selectedTeam,
             getSelectedTeam,
          }}

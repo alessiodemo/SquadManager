@@ -10,6 +10,8 @@ export function useSeason() {
 export const SeasonProvider = function ({ children }) {
     const [ seasonId, setSeasonId ] = useState(null);
     const [ seasons, setSeasons ] = useState([]);
+    const [ seasonsLoading, setSeasonsLoading ] = useState(true);
+    const [ seasonsError, setSeasonsError ] = useState(null);
 
     function activateSeason(season) {
         const normalizedSeason = normalizeSeason(season);
@@ -22,6 +24,8 @@ export const SeasonProvider = function ({ children }) {
 
     useEffect(() => {
         async function loadSeason() {
+            setSeasonsLoading(true);
+            setSeasonsError(null);
             try {
                 const [ seasonList, currentSeason ] = await Promise.all([
                     getSeasons(),
@@ -31,6 +35,9 @@ export const SeasonProvider = function ({ children }) {
                 setSeasonId(currentSeason?.id ?? null);
             } catch (error) {
                 console.error(error)
+                setSeasonsError('Impossibile caricare le stagioni.');
+            } finally {
+                setSeasonsLoading(false);
             }
         }
         loadSeason();
@@ -39,7 +46,15 @@ export const SeasonProvider = function ({ children }) {
     const selectedSeason = seasons.find((season) => season.id === seasonId) ?? null;
 
     return (
-        <SeasonContext.Provider value={{seasonId, setSeasonId, seasons, selectedSeason, activateSeason}}>
+        <SeasonContext.Provider value={{
+            seasonId,
+            setSeasonId,
+            seasons,
+            seasonsLoading,
+            seasonsError,
+            selectedSeason,
+            activateSeason,
+        }}>
             {children}
         </SeasonContext.Provider>
     )
