@@ -4,12 +4,15 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import './index.css'
 import { ThemeInit } from '../.flowbite-react/init'
+import { ToastProvider } from './components/ToastProvider'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ThemeInit />
     <BrowserRouter>
-      <App />
+      <ToastProvider>
+        <App />
+      </ToastProvider>
     </BrowserRouter>
   </React.StrictMode>,
 )

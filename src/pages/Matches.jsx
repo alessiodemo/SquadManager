@@ -3,6 +3,8 @@ import { Sparkles, Plus, RefreshCw, Radio, Edit2, Trash2, Calendar, CheckCircle2
 import { getMatches, getMatchContext, upsertMatch, deleteMatch, updateScore, importCompetitionMatches } from '../api/matches'
 import { supabase } from '../lib/supabase'
 import Modal from '../components/Modal'
+import ConfirmDialog from '../components/ConfirmDialog'
+import { useToast } from '../components/ToastProvider'
 import Badge from '../components/Badge'
 import { useSeason } from '../context/seasonContext'
 import { useTeam } from '../context/teamContext'
@@ -35,6 +37,8 @@ export default function Matches() {
   const [contextLoading, setContextLoading] = useState(false)
   const [contextMatch, setContextMatch] = useState(null)
   const [showContextModal, setShowContextModal] = useState(false)
+  const [deleteMatchId, setDeleteMatchId] = useState(null)
+  const { showToast } = useToast()
   const [syncState, setSyncState] = useState({
     status: 'idle',
     imported: null,
@@ -103,15 +107,26 @@ export default function Matches() {
       await upsertMatch(payload)
       setShowModal(false)
       load(seasonId)
+      showToast(editingId ? 'Match updated successfully.' : 'Match saved successfully.', { tone: 'success' })
     } catch (e) {
-      alert(getErrorMessage(e, 'Unable to save the match.'))
+      showToast(getErrorMessage(e, 'Unable to save the match.'), { tone: 'error' })
     }
   }
 
   async function handleDelete(id) {
-    if (!confirm('Delete this match?')) return
-    await deleteMatch(id)
-    load(seasonId)
+    setDeleteMatchId(id)
+  }
+
+  async function confirmDeleteMatch() {
+    try {
+      await deleteMatch(deleteMatchId)
+      await load(seasonId)
+      showToast('Match deleted successfully.', { tone: 'success' })
+    } catch (e) {
+      showToast(getErrorMessage(e, 'Unable to delete the match.'), { tone: 'error' })
+    } finally {
+      setDeleteMatchId(null)
+    }
   }
 
   async function handleLiveUpdate(id) {
@@ -120,7 +135,7 @@ export default function Matches() {
       setLiveId(null)
       load(seasonId)
     } catch (e) {
-      alert(getErrorMessage(e, 'Unable to update the score.'))
+      showToast(getErrorMessage(e, 'Unable to update the score.'), { tone: 'error' })
     }
   }
 
@@ -134,7 +149,7 @@ export default function Matches() {
       const data = await getMatchContext(match.id)
       setContext(data)
     } catch (e) {
-      alert(getErrorMessage(e, 'Unable to load the match context.'))
+      showToast(getErrorMessage(e, 'Unable to load the match context.'), { tone: 'error' })
       setShowContextModal(false)
     } finally {
       setContextLoading(false)
@@ -567,6 +582,15 @@ export default function Matches() {
           </div>
         </Modal>
       )}
+      <ConfirmDialog
+        open={Boolean(deleteMatchId)}
+        title="Delete match"
+        message="Are you sure you want to delete this match? This action cannot be undone."
+        confirmLabel="Delete"
+        onCancel={() => setDeleteMatchId(null)}
+        onConfirm={confirmDeleteMatch}
+        destructive
+      />
     </div>
   )
 }

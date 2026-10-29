@@ -7,14 +7,14 @@ import {
   Pencil,
   Trash2,
   Coins,
-  CheckCircle2,
-  AlertCircle,
   Calendar,
 } from 'lucide-react'
 import { getTransfers, upsertTransfer, deleteTransfer } from '../api/transfers'
 import { getSquadWithStats } from '../api/players'
 import Modal from '../components/Modal'
+import ConfirmDialog from '../components/ConfirmDialog'
 import Badge from '../components/Badge'
+import { useToast } from '../components/ToastProvider'
 import { useSeason } from '../context/seasonContext'
 import { getErrorMessage } from '../lib/errors'
 
@@ -41,8 +41,9 @@ export default function Market() {
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState(null)
-  const [banner, setBanner] = useState(null)
   const [activeTab, setActiveTab] = useState('all') // 'all' | 'in' | 'out'
+  const [deleteTransferId, setDeleteTransferId] = useState(null)
+  const { showToast } = useToast()
 
   const { seasonId, selectedSeason } = useSeason()
 
@@ -71,14 +72,12 @@ export default function Market() {
   }, [seasonId])
 
   function openNew() {
-    setBanner(null)
     setForm({ ...emptyForm, season_id: seasonId })
     setEditingId(null)
     setShowModal(true)
   }
 
   function openEdit(t) {
-    setBanner(null)
     setForm({
       player_id: t.player_id ?? '',
       type: t.type,
@@ -94,7 +93,7 @@ export default function Market() {
 
   async function handleSave() {
     if (!form.transfer_date) {
-      setBanner({ type: 'error', text: 'Select a transfer date.' })
+      showToast('Select a transfer date.', { tone: 'error' })
       return
     }
 
@@ -111,24 +110,26 @@ export default function Market() {
     try {
       await upsertTransfer(payload)
       setShowModal(false)
-      setBanner({
-        type: 'success',
-        text: editingId ? 'Trasferimento aggiornato con successo.' : 'Nuova operazione registrata.',
-      })
-      load(seasonId)
+      await load(seasonId)
+      showToast(editingId ? 'Transfer updated successfully.' : 'Transfer saved successfully.', { tone: 'success' })
     } catch (e) {
-      setBanner({ type: 'error', text: getErrorMessage(e, 'Unable to save the transfer.') })
+      showToast(getErrorMessage(e, 'Unable to save the transfer.'), { tone: 'error' })
     }
   }
 
   async function handleDelete(id) {
-    if (!confirm('Eliminare questo trasferimento?')) return
+    setDeleteTransferId(id)
+  }
+
+  async function confirmDeleteTransfer() {
     try {
-      await deleteTransfer(id)
-      setBanner({ type: 'success', text: 'Operazione eliminata.' })
-      load(seasonId)
+      await deleteTransfer(deleteTransferId)
+      await load(seasonId)
+      showToast('Transfer deleted successfully.', { tone: 'success' })
     } catch (e) {
-      setBanner({ type: 'error', text: getErrorMessage(e, 'Unable to delete the transfer.') })
+      showToast(getErrorMessage(e, 'Unable to delete the transfer.'), { tone: 'error' })
+    } finally {
+      setDeleteTransferId(null)
     }
   }
 
@@ -172,24 +173,6 @@ export default function Market() {
           <span>Nuovo Trasferimento</span>
         </button>
       </div>
-
-      {banner && (
-        <div
-          role="status"
-          className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border text-xs sm:text-sm font-medium ${
-            banner.type === 'success'
-              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-              : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
-          }`}
-        >
-          {banner.type === 'success' ? (
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-          ) : (
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
-          )}
-          <span>{banner.text}</span>
-        </div>
-      )}
 
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
@@ -486,6 +469,15 @@ export default function Market() {
           </div>
         </Modal>
       )}
+      <ConfirmDialog
+        open={Boolean(deleteTransferId)}
+        title="Delete transfer"
+        message="Are you sure you want to delete this transfer? This action cannot be undone."
+        confirmLabel="Delete"
+        onCancel={() => setDeleteTransferId(null)}
+        onConfirm={confirmDeleteTransfer}
+        destructive
+      />
     </div>
   )
 }

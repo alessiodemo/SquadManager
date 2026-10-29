@@ -6,14 +6,14 @@ import {
   Search,
   Pencil,
   Trash2,
-  AlertCircle,
-  CheckCircle2,
   Square,
 } from 'lucide-react'
 import { getSquadWithStats, importFootballDataSquad, upsertPlayer, deletePlayer } from '../api/players'
 import { supabase } from '../lib/supabase'
 import Modal from '../components/Modal'
+import ConfirmDialog from '../components/ConfirmDialog'
 import Badge from '../components/Badge'
+import { useToast } from '../components/ToastProvider'
 import { useSeason } from '../context/seasonContext'
 import { useTeam } from '../context/teamContext'
 import { getErrorMessage } from '../lib/errors'
@@ -46,8 +46,9 @@ export default function Squad() {
   const [editingId, setEditingId] = useState(null)
   const [search, setSearch] = useState('')
   const [selectedRole, setSelectedRole] = useState('ALL')
-  const [banner, setBanner] = useState(null)
   const [importing, setImporting] = useState(false)
+  const [deletePlayerId, setDeletePlayerId] = useState(null)
+  const { showToast } = useToast()
 
   const { seasonId, selectedSeason } = useSeason()
   const { selectedTeam, competitionCode } = useTeam()
@@ -84,14 +85,12 @@ export default function Squad() {
   }, [seasonId])
 
   function openNew() {
-    setBanner(null)
     setForm(emptyForm)
     setEditingId(null)
     setShowModal(true)
   }
 
   function openEdit(p) {
-    setBanner(null)
     setForm({
       name: p.name,
       surname: p.surname,
@@ -105,7 +104,7 @@ export default function Squad() {
 
   async function handleSave() {
     if (!form.name.trim() || !form.surname.trim()) {
-      setBanner({ type: 'error', text: 'Nome e cognome sono obbligatori.' })
+      showToast('First name and surname are required.', { tone: 'error' })
       return
     }
 
@@ -121,20 +120,16 @@ export default function Squad() {
     try {
       await upsertPlayer(payload)
       setShowModal(false)
-      setBanner({
-        type: 'success',
-        text: editingId ? 'Giocatore aggiornato con successo.' : 'Giocatore aggiunto alla rosa.',
-      })
-      load(seasonId)
+      await load(seasonId)
+      showToast(editingId ? 'Player updated successfully.' : 'Player added to the squad.', { tone: 'success' })
     } catch (e) {
-      setBanner({ type: 'error', text: getErrorMessage(e, 'Unable to save the player.') })
+      showToast(getErrorMessage(e, 'Unable to save the player.'), { tone: 'error' })
     }
   }
 
   async function handleImportSquad() {
     if (!seasonId || !selectedSeason || !selectedTeam || importing) return
     setImporting(true)
-    setBanner(null)
 
     try {
       const result = await importFootballDataSquad(
@@ -143,25 +138,30 @@ export default function Squad() {
         selectedTeam.id
       )
       await load(seasonId)
-      setBanner({
-        type: 'success',
-        text: `${result.team}: importati ${result.imported} giocatori per la stagione ${result.season}/${String(result.season + 1).slice(-2)}${result.skipped ? ` (${result.skipped} non importati)` : ''}.`,
-      })
+      showToast(
+        `${result.team}: ${result.imported} players imported for season ${result.season}/${String(result.season + 1).slice(-2)}${result.skipped ? ` (${result.skipped} skipped)` : ''}.`,
+        { tone: 'success' },
+      )
     } catch (e) {
-      setBanner({ type: 'error', text: getErrorMessage(e, 'Unable to import the squad.') })
+      showToast(getErrorMessage(e, 'Unable to import the squad.'), { tone: 'error' })
     } finally {
       setImporting(false)
     }
   }
 
   async function handleDelete(id) {
-    if (!confirm('Eliminare questo giocatore dalla rosa?')) return
+    setDeletePlayerId(id)
+  }
+
+  async function confirmDeletePlayer() {
     try {
-      await deletePlayer(id, seasonId)
-      setBanner({ type: 'success', text: 'Giocatore rimosso dalla rosa.' })
-      load(seasonId)
+      await deletePlayer(deletePlayerId, seasonId)
+      await load(seasonId)
+      showToast('Player removed from the squad.', { tone: 'success' })
     } catch (e) {
-      setBanner({ type: 'error', text: getErrorMessage(e, 'Unable to delete the player.') })
+      showToast(getErrorMessage(e, 'Unable to delete the player.'), { tone: 'error' })
+    } finally {
+      setDeletePlayerId(null)
     }
   }
 
@@ -225,24 +225,6 @@ export default function Squad() {
           </button>
         </div>
       </div>
-
-      {banner && (
-        <div
-          role="status"
-          className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border text-xs sm:text-sm font-medium ${
-            banner.type === 'success'
-              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-              : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
-          }`}
-        >
-          {banner.type === 'success' ? (
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-          ) : (
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
-          )}
-          <span>{banner.text}</span>
-        </div>
-      )}
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -492,6 +474,15 @@ export default function Squad() {
           </div>
         </Modal>
       )}
+      <ConfirmDialog
+        open={Boolean(deletePlayerId)}
+        title="Remove player"
+        message="Are you sure you want to remove this player from the squad?"
+        confirmLabel="Remove"
+        onCancel={() => setDeletePlayerId(null)}
+        onConfirm={confirmDeletePlayer}
+        destructive
+      />
     </div>
   )
 }
