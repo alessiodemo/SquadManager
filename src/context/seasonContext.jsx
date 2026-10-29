@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { getCurrentSeason, getSeasons, normalizeSeason, normalizeSeasons } from "../api/seasons";
+import { getSeasons, normalizeSeason, normalizeSeasons } from "../api/seasons";
 import { getErrorMessage } from "../lib/errors";
 
 const SeasonContext = createContext();
@@ -28,12 +28,9 @@ export const SeasonProvider = function ({ children }) {
             setSeasonsLoading(true);
             setSeasonsError(null);
             try {
-                const [ seasonList, currentSeason ] = await Promise.all([
-                    getSeasons(),
-                    getCurrentSeason(),
-                ]);
+                const seasonList = await getSeasons();
                 setSeasons(normalizeSeasons(seasonList));
-                setSeasonId(currentSeason?.id ?? null);
+                setSeasonId(null);
             } catch (error) {
                 console.error(error)
                 setSeasonsError(getErrorMessage(error, 'Unable to load seasons.'));

@@ -1,11 +1,13 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { LayoutDashboard, CalendarDays, Users, Trophy, ArrowLeftRight, Activity } from 'lucide-react'
+import { LayoutDashboard, CalendarDays, Users, Trophy, ArrowLeftRight, Activity, RefreshCw } from 'lucide-react'
 import { useSeason } from '../context/seasonContext'
 import { useTeam } from '../context/teamContext'
 import SeasonSelector from './SeasonSelector'
 import CompetitionSelector from './CompetitionSelector'
 import TeamSelector from './TeamSelector'
 import { Card } from './ui/card'
+import { useToast } from './ToastProvider'
+import { getErrorMessage } from '../lib/errors'
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -17,8 +19,32 @@ const navItems = [
 
 export default function Layout() {
   const { seasonId, setSeasonId, selectedSeason } = useSeason()
-  const { competitionCode, selectedTeam } = useTeam()
+  const {
+    competitionCode,
+    selectedTeam,
+    contextLoading,
+    applyingData,
+    applySelectedTeamData,
+  } = useTeam()
+  const { showToast } = useToast()
   const { pathname } = useLocation()
+  const canApply = Boolean(competitionCode && selectedSeason?.start_year && selectedTeam)
+  const contextReady = selectedSeason?.competition_code === competitionCode
+    && Number(selectedSeason?.team_external_id) === Number(selectedTeam?.id)
+
+  async function handleApply() {
+    try {
+      const result = await applySelectedTeamData()
+      if (!result) return
+
+      showToast(
+        `Data imported: ${result.matches.imported ?? 0} matches, ${result.standings.imported ?? 0} standings rows, and ${result.squad.imported ?? 0} players.`,
+        { tone: 'success', duration: 7000 },
+      )
+    } catch (error) {
+      showToast(getErrorMessage(error, 'Unable to import the club data.'), { tone: 'error', duration: 7000 })
+    }
+  }
 
   return (
     <div className="min-h-screen bg-sofa-bg text-slate-100 lg:flex">
@@ -69,6 +95,23 @@ export default function Layout() {
                 <TeamSelector />
               </div>
             )}
+            {canApply && (
+              <button
+                type="button"
+                onClick={handleApply}
+                disabled={contextLoading || applyingData || !contextReady}
+                className="primary-button w-full justify-center disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <RefreshCw size={14} className={applyingData ? 'animate-spin' : ''} />
+                <span>
+                  {contextLoading || !contextReady
+                    ? 'Preparing club...'
+                    : applyingData
+                      ? 'Importing club data...'
+                      : 'Apply'}
+                </span>
+              </button>
+            )}
           </Card>
         </div>
 
@@ -100,7 +143,7 @@ export default function Layout() {
             <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-sofa-card border border-sofa-border">
               <div className="w-2 h-2 rounded-full bg-sofa-blue shrink-0" />
               <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-sofa-muted">Club Attivo</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-sofa-muted">Current Club</p>
                 <p className="text-xs font-bold text-white truncate">{selectedTeam.name}</p>
               </div>
             </div>

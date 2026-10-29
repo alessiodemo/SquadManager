@@ -3,6 +3,9 @@ import { getFootballDataCompetitions, getFootballDataTeamsForCompetition } from 
 import { useSeason } from "./seasonContext";
 import { createSeasonContext } from "../api/seasons";
 import { getErrorMessage } from "../lib/errors";
+import { importFootballDataSquad } from "../api/players";
+import { importCompetitionMatches } from "../api/matches";
+import { importStandings } from "../api/standings";
 
 const TeamContext = createContext();
 
@@ -19,6 +22,9 @@ export const TeamProvider = function({ children }) {
     const [ teams, setTeams ] = useState([]);
     const [ teamsLoading, setTeamsLoading ] = useState(false);
     const [ teamsError, setTeamsError ] = useState(null);
+    const [ contextLoading, setContextLoading ] = useState(false);
+    const [ applyingData, setApplyingData ] = useState(false);
+    const [ dataRefreshKey, setDataRefreshKey ] = useState(0);
     const { selectedSeason, activateSeason } = useSeason();
 
     const selectedTeam = teams.find((team) => String(team.id) === String(teamId)) ?? null;
@@ -38,6 +44,7 @@ export const TeamProvider = function({ children }) {
         const normalizedTeamId = String(team.id);
         setTeamId(normalizedTeamId);
 
+        setContextLoading(true);
         try {
             const season = await createSeasonContext(
                 competitionCode,
@@ -48,6 +55,50 @@ export const TeamProvider = function({ children }) {
             activateSeason(season);
         } catch (error) {
             console.error(error);
+        } finally {
+            setContextLoading(false);
+        }
+    }
+
+    async function applySelectedTeamData() {
+        const contextMatchesSelection = selectedSeason?.competition_code === competitionCode
+            && Number(selectedSeason?.team_external_id) === Number(selectedTeam?.id);
+
+        if (
+            !selectedTeam
+            || !competitionCode
+            || !selectedSeason?.start_year
+            || !contextMatchesSelection
+            || applyingData
+        ) {
+            return null;
+        }
+
+        setApplyingData(true);
+        try {
+            const [matches, standings, squad] = await Promise.all([
+                importCompetitionMatches({
+                    competitionCode,
+                    season: selectedSeason.start_year,
+                    teamExternalId: selectedTeam.id,
+                    seasonId: selectedSeason.id,
+                }),
+                importStandings({
+                    competitionCode,
+                    season: selectedSeason.start_year,
+                    seasonId: selectedSeason.id,
+                }),
+                importFootballDataSquad(
+                    selectedSeason.id,
+                    selectedSeason.start_year,
+                    selectedTeam.id,
+                ),
+            ]);
+
+            setDataRefreshKey((current) => current + 1);
+            return { matches, standings, squad };
+        } finally {
+            setApplyingData(false);
         }
     }
 
@@ -119,6 +170,10 @@ export const TeamProvider = function({ children }) {
             teamsError,
             selectedTeam,
             getSelectedTeam,
+            contextLoading,
+            applyingData,
+            dataRefreshKey,
+            applySelectedTeamData,
          }}
         >
             {children}

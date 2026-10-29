@@ -18,6 +18,9 @@ analytics.
 - Select a season and then a club participating in that competition.
 - Keep the selected competition, season, and club available across all pages.
 - Create or reuse a season context for the selected competition, year, and club.
+- Apply a selected competition, season, and club with one action to import the
+  club's fixtures/results, standings, and squad.
+- Refresh the dashboard automatically after the combined import completes.
 - Show loading, error, and empty states in the selectors.
 
 ### Dashboard

@@ -218,14 +218,6 @@ export default function Matches() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <button
-            onClick={handleImport}
-            disabled={!seasonId || !selectedTeam || !competitionCode || syncState.status === 'syncing'}
-            className="action-button"
-          >
-            <RefreshCw size={14} className={`text-sofa-muted ${syncState.status === 'syncing' ? 'animate-spin' : ''}`} />
-            <span>{syncState.status === 'syncing' ? 'Synchronizing...' : selectedTeam ? `Synchronize ${selectedTeam.name}` : 'Synchronize'}</span>
-          </button>
           
           <button
             onClick={openNew}

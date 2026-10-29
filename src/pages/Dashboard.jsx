@@ -23,7 +23,7 @@ function matchResultLabel(r) {
 
 export default function Dashboard() {
   const { seasonId, selectedSeason } = useSeason()
-  const { selectedTeam, competitionCode } = useTeam()
+  const { selectedTeam, competitionCode, dataRefreshKey } = useTeam()
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
   const [summary, setSummary] = useState(null)
@@ -50,7 +50,7 @@ export default function Dashboard() {
       }
     }
     load()
-  }, [seasonId])
+  }, [seasonId, dataRefreshKey])
 
   useEffect(() => {
     async function loadStandings() {
@@ -67,7 +67,7 @@ export default function Dashboard() {
       }
     }
     loadStandings()
-  }, [seasonId, competitionCode])
+  }, [seasonId, competitionCode, dataRefreshKey])
 
   useEffect(() => {
     async function loadSummary() {
@@ -84,7 +84,7 @@ export default function Dashboard() {
       }
     }
     loadSummary()
-  }, [seasonId])
+  }, [seasonId, dataRefreshKey])
 
   const played = summary?.played ?? 0
   const wins = summary?.wins ?? 0

@@ -207,14 +207,6 @@ export default function Squad() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={handleImportSquad}
-            disabled={!seasonId || !selectedTeam || importing}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-sofa-cardHover hover:bg-sofa-border border border-sofa-border hover:border-sofa-borderLight disabled:opacity-40 text-sofa-text text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-sofa-blue ${importing ? 'animate-spin' : ''}`} />
-            <span>{importing ? 'Importazione...' : 'Importa Rosa'}</span>
-          </button>
 
           <button
             onClick={openNew}

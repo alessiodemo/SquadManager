@@ -123,15 +123,6 @@ export default function Standings() {
             </p>
           </div>
         </div>
-
-        <button
-          onClick={handleImportStandings}
-          disabled={!seasonId || !selectedSeason || !competitionCode || !selectedTeam || importing}
-          className="action-button self-start uppercase tracking-wider sm:self-auto"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 text-sofa-blue ${importing ? 'animate-spin' : 'group-hover:rotate-45 transition-transform'}`} />
-          <span>{importing ? 'Sincronizzazione...' : 'Sincronizza Classifica'}</span>
-        </button>
       </div>
 
       {notification && (
