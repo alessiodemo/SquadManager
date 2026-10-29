@@ -23,6 +23,23 @@ app.use('/api/players', playersRouter)
 app.use('/api/matches', matchesRouter)
 app.use('/api/transfers', transfersRouter)
 app.use('/api/football-data', footballDataRouter)
+app.get('/api/health', async (req, res) => {
+    try {
+        await pool.query('SELECT 1')
+        return res.json({
+            status: 'ok',
+            database: 'connected',
+            timestamp: new Date().toISOString(),
+        })
+    } catch (error) {
+        console.error(`[health] Database check failed: ${error.message}`)
+        return res.status(503).json({
+            status: 'degraded',
+            database: 'unavailable',
+            timestamp: new Date().toISOString(),
+        })
+    }
+})
 
 try {
     await runMigrations()

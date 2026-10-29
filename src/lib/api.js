@@ -2,10 +2,10 @@ import { ApiError } from './errors'
 
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
-export async function apiFetch(path, options = {}) {
+async function request(baseUrl, path, options = {}) {
     let response
     try {
-        response = await fetch(`${BASE}${path}`, {
+        response = await fetch(`${baseUrl}${path}`, {
             headers: { 'Content-Type': 'application/json' },
             ...options,
         })
@@ -26,7 +26,7 @@ export async function apiFetch(path, options = {}) {
             ? body.error
             : typeof body === 'string' && body
                 ? body
-                : 'La richiesta non è andata a buon fine.'
+                : 'The request could not be completed.'
 
         throw new ApiError(message, {
             status: response.status,
@@ -36,4 +36,12 @@ export async function apiFetch(path, options = {}) {
     }
 
     return body
+}
+
+export function apiFetch(path, options = {}) {
+    return request(BASE, path, options)
+}
+
+export function apiFetchFrom(baseUrl, path, options = {}) {
+    return request(baseUrl, path, options)
 }

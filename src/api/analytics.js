@@ -1,12 +1,10 @@
-export async function getAnalytics(seasonId) {
-    const res = await fetch(`http://localhost:8080/api/analytics/seasons/${seasonId}/summary`, {
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    })
-    if (!res.ok) {
-        throw new Error(await res.text())
-    }
+import { apiFetchFrom } from '../lib/api'
 
-    return res.json()
+const ANALYTICS_API_URL = import.meta.env.VITE_ANALYTICS_API_URL || 'http://localhost:8080'
+
+export function getAnalytics(seasonId) {
+    return apiFetchFrom(
+        ANALYTICS_API_URL,
+        `/api/analytics/seasons/${encodeURIComponent(seasonId)}/summary`,
+    )
 }
