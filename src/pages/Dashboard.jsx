@@ -9,6 +9,7 @@ import { ErrorNotice } from '../components/ui/error-notice'
 import StatCard from '../components/StatCard'
 import Badge from '../components/Badge'
 import MatchVenueIcon from '../components/MatchVenueIcon'
+import TeamLogo from '../components/TeamLogo'
 
 function matchResult(m) {
   if (m.goals_for == null) return null
@@ -130,8 +131,8 @@ export default function Dashboard() {
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-radial from-sofa-blue/10 to-transparent pointer-events-none" />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-sofa-blue to-blue-700 flex items-center justify-center text-white text-xl sm:text-2xl font-black shadow-lg shadow-sofa-blue/25 border border-white/10 shrink-0">
-              {selectedTeam?.name ? selectedTeam.name.substring(0, 2).toUpperCase() : 'FC'}
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br flex items-center justify-center text-white text-xl sm:text-2xl font-black shadow-lg">
+              <TeamLogo src={selectedTeam?.crest} name={selectedTeam?.name} size="xl" />
             </div>
             <div>
               <div className="flex items-center gap-2">

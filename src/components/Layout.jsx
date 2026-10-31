@@ -5,9 +5,11 @@ import { useTeam } from '../context/teamContext'
 import SeasonSelector from './SeasonSelector'
 import CompetitionSelector from './CompetitionSelector'
 import TeamSelector from './TeamSelector'
+import TeamLogo from './TeamLogo'
 import { Card } from './ui/card'
 import { useToast } from './ToastProvider'
 import { getErrorMessage } from '../lib/errors'
+
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -141,7 +143,7 @@ export default function Layout() {
         {selectedTeam && (
           <div className="border-t border-sofa-border bg-[#0b1320]/70 p-3">
             <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-sofa-card border border-sofa-border">
-              <div className="w-2 h-2 rounded-full bg-sofa-blue shrink-0" />
+              <TeamLogo src={selectedTeam.crest} alt={selectedTeam.name} size="sm" />
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-sofa-muted">Current Club</p>
                 <p className="text-xs font-bold text-white truncate">{selectedTeam.name}</p>
