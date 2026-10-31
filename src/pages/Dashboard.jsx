@@ -24,7 +24,7 @@ function matchResultLabel(r) {
 
 export default function Dashboard() {
   const { seasonId, selectedSeason } = useSeason()
-  const { selectedTeam, competitionCode, dataRefreshKey } = useTeam()
+  const { selectedTeam, competitionCode, dataRefreshKey, getTeamCrest } = useTeam()
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
   const [summary, setSummary] = useState(null)
@@ -234,6 +234,11 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between gap-3">
                     {/* Home Team */}
                     <div className="flex-1 text-center sm:text-left">
+                      <TeamLogo
+                        src={nextMatch.is_home ? selectedTeam?.crest : getTeamCrest(nextMatch.opponent)}
+                        name={nextMatch.is_home ? selectedTeam?.name : nextMatch.opponent}
+                        size="md"
+                      />
                       <p className={`text-base font-bold truncate ${nextMatch.is_home ? 'text-white' : 'text-sofa-muted'}`}>
                         {nextMatch.is_home ? (selectedTeam?.name ?? 'Your team') : nextMatch.opponent}
                       </p>
@@ -251,6 +256,11 @@ export default function Dashboard() {
 
                     {/* Away Team */}
                     <div className="flex-1 text-center sm:text-right">
+                      <TeamLogo
+                        src={!nextMatch.is_home ? selectedTeam?.crest : getTeamCrest(nextMatch.opponent)}
+                        name={!nextMatch.is_home ? selectedTeam?.name : nextMatch.opponent}
+                        size="md"
+                      />
                       <p className={`text-base font-bold truncate ${!nextMatch.is_home ? 'text-white' : 'text-sofa-muted'}`}>
                         {!nextMatch.is_home ? (selectedTeam?.name ?? 'Your team') : nextMatch.opponent}
                       </p>
@@ -331,6 +341,7 @@ export default function Dashboard() {
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <MatchVenueIcon isHome={m.is_home} />
+                        <TeamLogo src={getTeamCrest(m.opponent)} name={m.opponent} size="sm" />
                         <span className="font-semibold text-xs sm:text-sm text-gray-200 truncate">
                           {m.opponent}
                         </span>

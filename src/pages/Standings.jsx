@@ -6,6 +6,7 @@ import { useSeason } from '../context/seasonContext'
 import { useTeam } from '../context/teamContext'
 import Badge from '../components/Badge'
 import { getErrorMessage } from '../lib/errors'
+import TeamLogo from '../components/TeamLogo'
 
 const FORM_COUNT = 5
 
@@ -31,7 +32,7 @@ export default function Standings() {
   const [importing, setImporting] = useState(false)
   const [notification, setNotification] = useState(null)
   const { seasonId, selectedSeason } = useSeason()
-  const { competitionCode, selectedTeam } = useTeam()
+  const { competitionCode, selectedTeam, getTeamCrest } = useTeam()
 
   async function load(sid) {
     if (!sid || !competitionCode) {
@@ -146,7 +147,7 @@ export default function Standings() {
       {loading ? (
         <div className="bg-sofa-card border border-sofa-border rounded-2xl p-12 text-center">
           <div className="w-8 h-8 border-2 border-sofa-blue border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm font-medium text-sofa-muted">Caricamento classifica in corso...</p>
+          <p className="text-sm font-medium text-sofa-muted">Loading Standings...</p>
         </div>
       ) : (
         <div className="data-surface">
@@ -155,7 +156,7 @@ export default function Standings() {
               <thead>
                 <tr className="bg-sofa-bg/60 text-sofa-muted uppercase text-[10px] sm:text-[11px] font-bold tracking-wider border-b border-sofa-border">
                   <th className="py-3 px-3 w-10 text-center">#</th>
-                  <th className="py-3 px-4 font-bold">Squadra</th>
+                  <th className="py-3 px-4 font-bold">Club</th>
                   <th className="py-3 px-2 text-center w-12" title="Partite Giocate">PG</th>
                   <th className="py-3 px-2 text-center w-10 text-emerald-400/80" title="Vittorie">V</th>
                   <th className="py-3 px-2 text-center w-10 text-amber-400/80" title="Pareggi">P</th>
@@ -164,7 +165,7 @@ export default function Standings() {
                   <th className="py-3 px-2 text-center w-12 hidden md:table-cell" title="Gol Subiti">GS</th>
                   <th className="py-3 px-2 text-center w-12" title="Differenza Reti">DR</th>
                   <th className="py-3 px-3 text-center w-14 font-black text-white" title="Punti">PT</th>
-                  <th className="py-3 px-4 text-center hidden sm:table-cell w-36">Ultime 5</th>
+                  <th className="py-3 px-4 text-center hidden sm:table-cell w-36">Last 5</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-sofa-border/60 text-xs sm:text-sm">
@@ -196,13 +197,7 @@ export default function Standings() {
                       {/* Team Name */}
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2.5">
-                          <div className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-black shrink-0 ${
-                            isSelected
-                              ? 'bg-sofa-blue text-white shadow-sm shadow-sofa-blue/40'
-                              : 'bg-sofa-border text-sofa-muted group-hover:text-white'
-                          }`}>
-                            {row.name.substring(0, 2).toUpperCase()}
-                          </div>
+                          <TeamLogo src={getTeamCrest(row.name)} alt={row.name} size="sm" />
                           <span className={`truncate font-medium ${isSelected ? 'text-white font-bold' : 'text-gray-200'}`}>
                             {row.name}
                           </span>

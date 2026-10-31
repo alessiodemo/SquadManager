@@ -10,6 +10,7 @@ import { useSeason } from '../context/seasonContext'
 import { useTeam } from '../context/teamContext'
 import MatchVenueIcon from '../components/MatchVenueIcon'
 import { getErrorMessage } from '../lib/errors'
+import TeamLogo from '../components/TeamLogo'
 
 function matchResult(m) {
   if (m.goals_for == null) return null
@@ -26,7 +27,7 @@ const emptyForm = {
 export default function Matches() {
   const [matches, setMatches] = useState([])
   const { seasonId, selectedSeason } = useSeason()
-  const { competitionCode, selectedTeam } = useTeam()
+  const { competitionCode, selectedTeam, getTeamCrest } = useTeam()
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState(emptyForm)
@@ -286,11 +287,33 @@ export default function Matches() {
                     <div className="flex items-center gap-3">
                       <MatchVenueIcon isHome={m.is_home} />
                       <div>
-                        <p className="font-bold text-white text-sm tracking-tight flex items-center gap-2">
-                          <span>{m.is_home ? (selectedTeam?.name || 'Home') : m.opponent}</span>
-                          <span className="text-sofa-dim font-normal text-xs">vs</span>
-                          <span>{m.is_home ? m.opponent : (selectedTeam?.name || 'Ospite')}</span>
-                        </p>
+                        <div className="flex items-center gap-2">
+                          {/* Squadra di Casa */}
+                          <div className="flex items-center gap-1.5">
+                            <TeamLogo
+                              src={m.is_home ? selectedTeam?.crest : getTeamCrest(m.opponent)}
+                              name={m.is_home ? selectedTeam?.name : m.opponent}
+                              size="sm"
+                            />
+                            <span className="font-bold text-white text-sm">
+                              {m.is_home ? (selectedTeam?.name || 'Casa') : m.opponent}
+                            </span>
+                          </div>
+
+                          <span className="text-sofa-dim font-normal text-xs px-1">vs</span>
+
+                          {/* Squadra Ospite */}
+                          <div className="flex items-center gap-1.5">
+                            <TeamLogo
+                              src={!m.is_home ? selectedTeam?.crest : getTeamCrest(m.opponent)}
+                              name={!m.is_home ? selectedTeam?.name : m.opponent}
+                              size="sm"
+                            />
+                            <span className="font-bold text-white text-sm">
+                              {!m.is_home ? (selectedTeam?.name || 'Ospite') : m.opponent}
+                            </span>
+                          </div>
+                        </div>
                         <p className="text-xs text-sofa-muted mt-0.5">
                           {new Date(m.date).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                           {m.venue ? ` · 📍 ${m.venue}` : ''}
@@ -384,6 +407,7 @@ export default function Matches() {
                         <div>
                           <div className="flex items-center gap-2">
                             <MatchVenueIcon isHome={m.is_home} />
+                            <TeamLogo src={getTeamCrest(m.opponent)} name={m.opponent} size="sm" />
                             <p className="font-bold text-white text-sm tracking-tight">
                               {m.opponent}
                             </p>

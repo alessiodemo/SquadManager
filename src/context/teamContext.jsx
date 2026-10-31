@@ -60,6 +60,23 @@ export const TeamProvider = function({ children }) {
         }
     }
 
+    function getTeamCrest(teamName) {
+        if ( !teamName) return null;
+
+        const search = String(teamName).toLowerCase().trim();
+        const found = teams.find((t) =>
+        String(t.id) === search ||
+        t.name?.toLowerCase().trim() === search ||
+        t.shortName?.toLowerCase().trim() === search ||
+        t.tla?.toLowerCase().trim() === search ||
+        t.name?.toLowerCase().includes(search) ||
+        search.includes(t.name?.toLowerCase())
+        );
+
+        return found?.crest ?? null;
+    }
+
+
     async function applySelectedTeamData() {
         const contextMatchesSelection = selectedSeason?.competition_code === competitionCode
             && Number(selectedSeason?.team_external_id) === Number(selectedTeam?.id);
@@ -174,6 +191,7 @@ export const TeamProvider = function({ children }) {
             applyingData,
             dataRefreshKey,
             applySelectedTeamData,
+            getTeamCrest,
          }}
         >
             {children}
