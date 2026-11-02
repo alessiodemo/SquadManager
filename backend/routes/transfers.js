@@ -1,7 +1,94 @@
 import { Router } from 'express';
 import { pool } from '../db.js';
+import { getTeam, normalizeSquadPlayer } from '../services/footballData.js';
 
 const router = Router();
+
+router.post('/import', async (req, res) => {
+    const { seasonId, season, teamId } = req.body;
+
+    if (!seasonId || !Number.isInteger(Number(season)) || !/^\d+$/.test(String(teamId))) {
+        return res.status(400).json({ error: 'A valid seasonId, season, and teamId are required' });
+    }
+
+    try {
+        const [currentTeam, previousTeam] = await Promise.all([
+            getTeam(teamId, Number(season)),
+            getTeam(teamId, Number(season) - 1),
+        ]);
+        const currentPlayers = currentTeam.squad?.map(normalizeSquadPlayer).filter(Boolean) ?? [];
+        const previousPlayers = previousTeam.squad?.map(normalizeSquadPlayer).filter(Boolean) ?? [];
+        const previousIds = new Set(previousPlayers.map((player) => player.football_data_id));
+        const currentIds = new Set(currentPlayers.map((player) => player.football_data_id));
+        const arrivals = currentPlayers.filter((player) => !previousIds.has(player.football_data_id));
+        const departures = previousPlayers.filter((player) => !currentIds.has(player.football_data_id));
+
+        let client;
+        let committed = false;
+        try {
+            client = await pool.connect();
+            await client.query('BEGIN');
+
+            for (const [type, players] of [['in', arrivals], ['out', departures]]) {
+                for (const player of players) {
+                    const playerResult = await client.query(
+                        `INSERT INTO players
+                          (football_data_id, name, surname, role, nationality, birth_date)
+                         VALUES ($1, $2, $3, $4, $5, $6)
+                         ON CONFLICT (football_data_id) DO UPDATE SET
+                           name = EXCLUDED.name,
+                           surname = EXCLUDED.surname,
+                           role = EXCLUDED.role,
+                           nationality = EXCLUDED.nationality,
+                           birth_date = EXCLUDED.birth_date
+                         RETURNING id`,
+                        [
+                            player.football_data_id,
+                            player.name,
+                            player.surname,
+                            player.role,
+                            player.nationality,
+                            player.birth_date,
+                        ],
+                    );
+                    const sourceKey = `football-data:${teamId}:${season}:${type}:${player.football_data_id}`;
+                    await client.query(
+                        `INSERT INTO market_transfers
+                          (player_id, season_id, type, transfer_date, club, notes, source, source_key)
+                         VALUES ($1, $2, $3, $4, $5, $6, 'football-data.org', $7)
+                         ON CONFLICT (season_id, source_key) DO UPDATE SET
+                           player_id = EXCLUDED.player_id,
+                           club = EXCLUDED.club,
+                           notes = EXCLUDED.notes`,
+                        [
+                            playerResult.rows[0].id,
+                            seasonId,
+                            type,
+                            `${Number(season)}-07-01`,
+                            type === 'in' ? previousTeam.name ?? null : currentTeam.name ?? null,
+                            'Derived by comparing football-data.org squads; fee unavailable.',
+                            sourceKey,
+                        ],
+                    );
+                }
+            }
+
+            await client.query('COMMIT');
+            committed = true;
+            return res.json({
+                imported: arrivals.length + departures.length,
+                arrivals: arrivals.length,
+                departures: departures.length,
+                season: Number(season),
+            });
+        } finally {
+            if (client && !committed) await client.query('ROLLBACK').catch(() => {});
+            client?.release();
+        }
+    } catch (error) {
+        return res.status(502).json({ error: error.message });
+    }
+});
 
 router.get("/", async (req, res) => {
     const { seasonId } = req.query;

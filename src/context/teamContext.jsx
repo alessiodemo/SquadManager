@@ -6,6 +6,7 @@ import { getErrorMessage } from "../lib/errors";
 import { importFootballDataSquad } from "../api/players";
 import { importCompetitionMatches } from "../api/matches";
 import { importStandings } from "../api/standings";
+import { importTransfers } from "../api/transfers";
 
 const TeamContext = createContext();
 
@@ -93,7 +94,7 @@ export const TeamProvider = function({ children }) {
 
         setApplyingData(true);
         try {
-            const [matches, standings, squad] = await Promise.all([
+            const [matches, standings, squad, transfers] = await Promise.all([
                 importCompetitionMatches({
                     competitionCode,
                     season: selectedSeason.start_year,
@@ -110,10 +111,15 @@ export const TeamProvider = function({ children }) {
                     selectedSeason.start_year,
                     selectedTeam.id,
                 ),
+                importTransfers({
+                    seasonId: selectedSeason.id,
+                    season: selectedSeason.start_year,
+                    teamId: selectedTeam.id,
+                }),
             ]);
 
             setDataRefreshKey((current) => current + 1);
-            return { matches, standings, squad };
+            return { matches, standings, squad, transfers };
         } finally {
             setApplyingData(false);
         }
