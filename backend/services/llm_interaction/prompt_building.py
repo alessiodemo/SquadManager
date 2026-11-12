@@ -14,6 +14,7 @@ def get_data(report: MatchReport) -> list[dict]:
             "goals_conceded": report.match.goals_against,
             "score": report.result,
             "events": [e.model_dump() for e in report.events],
+            "related_documents": report.related_documents,
         }
     return data
 

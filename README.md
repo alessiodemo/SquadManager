@@ -238,6 +238,10 @@ DATABASE_URL=postgresql://postgres:password@localhost:5432/squad_manager
 PORT=3000
 FOOTBALL_DATA_TOKEN=<football-data.org token>
 LLM_SERVICE_URL=http://localhost:8000
+QDRANT_URL=http://localhost:6333
+QDRANT_COLLECTION=squad_manager_knowledge
+QDRANT_VECTOR_SIZE=1536
+EMBEDDING_MODEL=text-embedding-3-small
 ```
 
 In Docker Compose, the backend uses the service name `postgres` instead of

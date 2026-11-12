@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from uuid import UUID
 from datetime import datetime
 
@@ -21,8 +21,9 @@ class Event(BaseModel):
 
 class MatchReport(BaseModel):
     match: Match
-    events: list[Event] = []
+    events: list[Event] = Field(default_factory=list)
     result: Literal["win","draw","loss"]
+    related_documents: list[dict] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def result_coherence_with_goal(self):
