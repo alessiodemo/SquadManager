@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../db.js';
 import { getMatchContext } from '../services/matchContext.js'
+import { indexKnowledge, searchKnowledge } from '../services/qdrant.js'
 
 const router =  Router();
 
@@ -88,13 +89,28 @@ router.post('/:id/analyze', async(req, res) => {
 
     try {
         const context = await getMatchContext(req.params.id)
+        const contextText = JSON.stringify(context)
+        let rag = { enabled: false, documents: [] }
+
+        try {
+            rag = await searchKnowledge({
+                text: contextText,
+                seasonId: context.match.season_id,
+            })
+        } catch (error) {
+            console.error(`[matches/analyze] RAG search failed: ${error.message}`)
+        }
+
         const response = await fetch(`${process.env.LLM_SERVICE_URL}/api/service`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                raw: context,
+                raw: {
+                    ...context,
+                    related_documents: rag.documents,
+                },
                 role: req.body?.role,
             }),
         })
@@ -105,14 +121,48 @@ router.post('/:id/analyze', async(req, res) => {
             return res.status(502).json({ error: detail })
         }
 
-        res.json({
+        const result = {
             ...body,
             context: {
                 matchId: context.match.id,
                 result: context.result,
                 eventsCount: context.events.length,
             },
-        })
+            rag: {
+                enabled: rag.enabled,
+                documents: rag.documents,
+            },
+        }
+
+        try {
+            await indexKnowledge({
+                id: context.match.id,
+                text: contextText,
+                payload: {
+                    entity_type: 'match',
+                    entity_id: context.match.id,
+                    season_id: context.match.season_id,
+                    source: 'postgresql',
+                },
+            })
+
+            if (typeof body?.result === 'string' && body.result.trim()) {
+                await indexKnowledge({
+                    text: body.result,
+                    payload: {
+                        entity_type: 'match_analysis',
+                        entity_id: context.match.id,
+                        season_id: context.match.season_id,
+                        source: 'llm',
+                    },
+                })
+            }
+        } catch (error) {
+            console.error(`[matches/analyze] RAG indexing failed: ${error.message}`)
+            result.rag.indexed = false
+        }
+
+        res.json(result)
     } catch (error) {
         console.error(`[matches/analyze] ${error.message}`)
         res.status(error.statusCode || 502).json({ error: error.message })
