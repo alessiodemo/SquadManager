@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Sparkles, Plus, RefreshCw, Radio, Edit2, Trash2, Calendar, CheckCircle2, AlertCircle } from 'lucide-react'
-import { getMatches, getMatchContext, upsertMatch, deleteMatch, updateScore, importCompetitionMatches } from '../api/matches'
+import { getMatches, analyzeMatch, upsertMatch, deleteMatch, updateScore, importCompetitionMatches } from '../api/matches'
 import { supabase } from '../lib/supabase'
 import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -147,7 +147,7 @@ export default function Matches() {
     setContextLoading(true)
 
     try {
-      const data = await getMatchContext(match.id)
+      const data = await analyzeMatch(match.id)
       setContext(data)
     } catch (e) {
       showToast(getErrorMessage(e, 'Unable to load the match context.'), { tone: 'error' })
