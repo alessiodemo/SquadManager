@@ -36,18 +36,17 @@ export async function deleteMatchEvent(id) {
   return apiFetch(`/api/matches/events/${id}`, { method: 'DELETE' })
 }
 
-export async function getMatchContext(matchId) {
-  const result = await apiFetch(`/api/matches/${matchId}/context`)
-  const llm_interaction = await apiFetch(`/api/matches/${matchId}/llmService`, {
+export async function analyzeMatch(matchId) {
+  return apiFetch(`/api/matches/${matchId}/analyze`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      raw: result,
-    })
   })
-  return llm_interaction
+}
+
+export async function getMatchContext(matchId) {
+  return apiFetch(`/api/matches/${matchId}/context`)
 }
 
 export async function importCompetitionMatches({ competitionCode, season, teamExternalId, seasonId }) {

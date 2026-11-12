@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { pool } from '../db.js';
+import { getMatchContext } from '../services/matchContext.js'
 
 const router =  Router();
 
@@ -28,31 +29,12 @@ router.get('/:id', async(req, res ) => {
 })
 
 router.get('/:id/context', async(req, res) => {
-    const matchResult = await pool.query(
-        'SELECT * FROM matches WHERE id=$1',
-        [req.params.id]
-    )
-
-    const eventsResult = await pool.query(
-        `SELECT me.*, p.name, p.surname
-         FROM match_events me
-         LEFT JOIN players p ON p.id = me.player_id
-         WHERE me.match_id = $1
-         ORDER BY me.minute`,
-         [req.params.id]
-    )
-
-    const match = matchResult.rows[0]
-
-    res.json({
-    match,
-    events: eventsResult.rows,
-    result: match.goals_for > match.goals_against
-        ? 'win'
-        : match.goals_for === match.goals_against
-            ? 'draw'
-            : 'loss'
-    })
+    try {
+        res.json(await getMatchContext(req.params.id))
+    } catch (error) {
+        console.error(`[matches/context] ${error.message}`)
+        res.status(error.statusCode || 500).json({ error: error.message })
+    }
 })
 
 router.post('/', async(req, res) => {
@@ -99,20 +81,68 @@ router.delete('/:id/events/:eventId', async(req, res) => {
     res.json({ success: true })
 })
 
-router.post('/:id/llmService', async(req, res) => {
-    const response = await fetch(`${process.env.LLM_SERVICE_URL}/api/service`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            raw: req.body.raw,
-            role: req.body.role
-        })
-    });
+router.post('/:id/analyze', async(req, res) => {
+    if (!process.env.LLM_SERVICE_URL) {
+        return res.status(503).json({ error: 'LLM service is not configured' })
+    }
 
-    const result = await response.json();
-    res.json(result);
+    try {
+        const context = await getMatchContext(req.params.id)
+        const response = await fetch(`${process.env.LLM_SERVICE_URL}/api/service`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                raw: context,
+                role: req.body?.role,
+            }),
+        })
+
+        const body = await response.json().catch(() => null)
+        if (!response.ok) {
+            const detail = body?.detail || body?.error || `LLM service returned ${response.status}`
+            return res.status(502).json({ error: detail })
+        }
+
+        res.json({
+            ...body,
+            context: {
+                matchId: context.match.id,
+                result: context.result,
+                eventsCount: context.events.length,
+            },
+        })
+    } catch (error) {
+        console.error(`[matches/analyze] ${error.message}`)
+        res.status(error.statusCode || 502).json({ error: error.message })
+    }
+})
+
+router.post('/:id/llmService', async(req, res) => {
+    if (!process.env.LLM_SERVICE_URL) {
+        return res.status(503).json({ error: 'LLM service is not configured' })
+    }
+
+    try {
+        const response = await fetch(`${process.env.LLM_SERVICE_URL}/api/service`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                raw: req.body?.raw,
+                role: req.body?.role,
+            }),
+        })
+        const body = await response.json().catch(() => null)
+        if (!response.ok) {
+            const detail = body?.detail || body?.error || `LLM service returned ${response.status}`
+            return res.status(502).json({ error: detail })
+        }
+        res.json(body)
+    } catch (error) {
+        console.error(`[matches/llmService] ${error.message}`)
+        res.status(502).json({ error: error.message })
+    }
 })
 
 export default router

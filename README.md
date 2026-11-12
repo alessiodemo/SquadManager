@@ -155,7 +155,7 @@ The Node API is mounted below `/api`.
 | `DELETE` | `/api/matches/<id>` | Delete a match |
 | `POST` | `/api/matches/<id>/events` | Add a match event |
 | `DELETE` | `/api/matches/<id>/events/<eventId>` | Delete a match event |
-| `POST` | `/api/matches/<id>/llmService` | Request an LLM match report |
+| `POST` | `/api/matches/<id>/analyze` | Request an AI match analysis using the structured match context |
 
 ### Transfers
 
