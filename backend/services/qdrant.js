@@ -115,3 +115,18 @@ export async function indexKnowledge({ id = randomUUID(), text, payload }) {
 
   return { enabled: true, indexed: true, id }
 }
+
+export async function deleteKnowledge(id) {
+  if (!isConfigured()) return { enabled: false, deleted: false }
+
+  await ensureCollection()
+  await request(
+    `/collections/${encodeURIComponent(collectionName)}/points/delete?wait=true`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ points: [id] }),
+    },
+  )
+
+  return { enabled: true, deleted: true, id }
+}

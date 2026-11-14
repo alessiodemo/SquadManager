@@ -163,6 +163,7 @@ The Node API is mounted below `/api`.
 |---|---|---|
 | `GET` | `/api/transfers?seasonId=<uuid>` | List transfers, optionally filtered by season |
 | `POST` | `/api/transfers` | Create or update a transfer |
+| `POST` | `/api/transfers/reindex` | Index existing transfers in the RAG knowledge base |
 | `DELETE` | `/api/transfers/<id>` | Delete a transfer |
 
 ### Football-data synchronization
