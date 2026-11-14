@@ -18,9 +18,11 @@ def get_data(report: MatchReport) -> list[dict]:
         }
     return data
 
-def build_prompt() -> ChatPromptTemplate:
+def build_prompt(parser) -> ChatPromptTemplate:
     
     return ChatPromptTemplate.from_messages([
         ("system", SYSTEM_PROMPT),
         ("user", USER_PROMPT_TEMPLATE),
-    ])
+    ]).partial(
+        format_instructions=parser.get_format_instructions()
+    )

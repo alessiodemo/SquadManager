@@ -488,9 +488,34 @@ export default function Matches() {
             <div className="space-y-4">
               <div className="bg-[#0b1320] border border-sofa-border rounded-xl p-5 max-h-[60vh] overflow-y-auto">
                 <div className="prose prose-invert prose-sm max-w-none text-slate-200 text-xs sm:text-sm whitespace-pre-wrap leading-relaxed font-sans">
-                  {typeof context?.result === 'string'
-                    ? context.result
-                    : JSON.stringify(context?.result || context, null, 2)}
+                  {context?.result && (
+                    <div className="space-y-4">
+                      <section>
+                        <h3 className="font-bold text-white">Summary</h3>
+                        <p className="text-sm text-slate-300">
+                          {context.result.summary}
+                        </p>
+                      </section>
+
+                      <section>
+                        <h3 className="font-bold text-white">Key factors</h3>
+                        <ul className="list-disc pl-5 text-sm text-slate-300">
+                          {context.result.key_factors.map((factor) => (
+                            <li key={factor}>{factor}</li>
+                          ))}
+                        </ul>
+                      </section>
+
+                      <section>
+                        <h3 className="font-bold text-white">Recommendations</h3>
+                        <ul className="list-disc pl-5 text-sm text-slate-300">
+                          {context.result.recommendations.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      </section>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex justify-end pt-2">
