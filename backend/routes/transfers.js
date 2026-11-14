@@ -1,6 +1,12 @@
 import { Router } from 'express';
 import { pool } from '../db.js';
 import { getTeam, normalizeSquadPlayer } from '../services/footballData.js';
+import {
+    indexTransfer,
+    indexTransfers,
+    removeTransferFromKnowledge,
+    reportKnowledgeSyncFailure,
+} from '../services/knowledgeIndexer.js';
 
 const router = Router();
 
@@ -137,6 +143,16 @@ router.get("/", async (req, res) => {
     }
 });
 
+router.post('/reindex', async (req, res) => {
+    try {
+        const result = await indexTransfers(req.body?.seasonId);
+        res.json(result);
+    } catch (error) {
+        reportKnowledgeSyncFailure('reindex-transfers', error);
+        res.status(502).json({ error: error.message });
+    }
+});
+
 router.post("/", async (req, res) => {
     const {
         id,
@@ -240,6 +256,7 @@ router.post("/", async (req, res) => {
         );
 
         await client.query('COMMIT');
+        indexTransfer(transferId).catch((error) => reportKnowledgeSyncFailure('index-transfer', error))
         res.json(fullRecord.rows[0] || result.rows[0]);
     } catch (error) {
         if (client) await client.query('ROLLBACK').catch(() => {});
@@ -256,6 +273,8 @@ router.delete('/:id', async (req, res) => {
             `DELETE FROM market_transfers WHERE id = $1`,
             [req.params.id]
         );
+        removeTransferFromKnowledge(req.params.id)
+            .catch((error) => reportKnowledgeSyncFailure('delete-transfer', error));
         res.json({ success: true });
     } catch (error) {
         console.error('Error deleting transfer:', error);
