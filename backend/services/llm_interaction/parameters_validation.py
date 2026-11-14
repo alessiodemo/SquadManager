@@ -37,6 +37,19 @@ class ServiceRequest(BaseModel):
     raw: str | dict
     role: str | None = None
 
+class Source(BaseModel):
+    type: str
+    label: str
+    entity_id: str | None = None
+
+class MatchAnalysis (BaseModel):
+    summary: str
+    facts: list[str] = Field(default_factory=list)
+    key_factors: list[str] = Field(default_factory=list)
+    recommendations: list[str] = Field(default_factory=list)
+    missing_data: list[str] = Field(default_factory=list)
+    sources: list[Source] = Field(default_factory=list)
+
 
     
     
