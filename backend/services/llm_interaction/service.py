@@ -33,6 +33,8 @@ def run_service(data: ServiceRequest):
         result = client.generate_report(data.raw, data.role)
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
+    except Exception as error:
+        raise HTTPException(status_code=502, detail=f"LLM provider request failed: {error}") from error
     return {"result": result}
 
 @app.post("/api/embeddings")
