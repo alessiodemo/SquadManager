@@ -16,7 +16,7 @@ def get_llm():
         model=os.getenv("LLM_PROVIDER"),
         temperature=0.3,
         api_key=api_key,
-        max_tokens=int(os.getenv("LLM_MAX_TOKENS", "500")),
+        max_tokens=int(os.getenv("LLM_MAX_TOKENS", "300")),
         base_url="https://openrouter.ai/api/v1",
     )
 
