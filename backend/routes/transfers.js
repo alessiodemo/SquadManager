@@ -62,7 +62,7 @@ router.post('/import', async (req, res) => {
                         `INSERT INTO market_transfers
                           (player_id, season_id, type, transfer_date, club, notes, source, source_key)
                          VALUES ($1, $2, $3, $4, $5, $6, 'football-data.org', $7)
-                         ON CONFLICT (season_id, source_key) DO UPDATE SET
+                         ON CONFLICT (season_id, source_key) WHERE source_key IS NOT NULL DO UPDATE SET
                            player_id = EXCLUDED.player_id,
                            club = EXCLUDED.club,
                            notes = EXCLUDED.notes`,
