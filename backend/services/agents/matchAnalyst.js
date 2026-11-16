@@ -11,6 +11,7 @@ async function callLlm({ context, rag, role }) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
+      task: 'match-analysis',
       raw: {
         ...context,
         related_documents: rag.documents,

@@ -1,4 +1,5 @@
 import { getMatchContext } from './matchContext.js'
+import { getTransferContext } from './transferContext.js'
 import { indexKnowledge, searchKnowledge } from './qdrant.js'
 import { agents } from './agents/index.js'
 
@@ -79,4 +80,23 @@ export async function runMatchAnalysis(
   }
 
   return result
+}
+
+export async function runTransferAdvice(
+  transferId,
+  { role } = {},
+) {
+  const context = await getTransferContext(transferId)
+  const agent = selectAgent('transfer-advisor')
+
+  const rag = {
+    enabled: false,
+    documents: [],
+  }
+
+  return agent.run({ 
+    context,
+    rag,
+    role,
+  })
 }

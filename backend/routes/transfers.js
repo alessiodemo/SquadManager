@@ -7,6 +7,7 @@ import {
     removeTransferFromKnowledge,
     reportKnowledgeSyncFailure,
 } from '../services/knowledgeIndexer.js';
+import { runTransferAdvice } from '../services/llmOrchestrator.js'
 
 const router = Router();
 
@@ -264,6 +265,18 @@ router.post("/", async (req, res) => {
         res.status(500).json({ error: error.message });
     } finally {
         if (client) client.release();
+    }
+});
+
+router.post('/:id/advice', async (req, res) => {
+    try {
+        const advice = await runTransferAdvice(req.params.id, { 
+            role: req.body?.role,
+        });
+        res.json(advice);
+    } catch (error) {
+        console.error(`[transfers/advice] ${error.message}`);
+        res.status(error.statusCode || 502).json({ error: error.message });
     }
 });
 
