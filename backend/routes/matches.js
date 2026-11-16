@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../db.js';
 import { getMatchContext } from '../services/matchContext.js'
-import { indexKnowledge, searchKnowledge } from '../services/qdrant.js'
+import { runMatchAnalysis } from '../services/llmOrchestrator.js'
 
 const router =  Router();
 
@@ -83,86 +83,8 @@ router.delete('/:id/events/:eventId', async(req, res) => {
 })
 
 router.post('/:id/analyze', async(req, res) => {
-    if (!process.env.LLM_SERVICE_URL) {
-        return res.status(503).json({ error: 'LLM service is not configured' })
-    }
-
     try {
-        const context = await getMatchContext(req.params.id)
-        const contextText = JSON.stringify(context)
-        let rag = { enabled: false, documents: [] }
-
-        try {
-            rag = await searchKnowledge({
-                text: contextText,
-                seasonId: context.match.season_id,
-            })
-        } catch (error) {
-            console.error(`[matches/analyze] RAG search failed: ${error.message}`)
-        }
-
-        const response = await fetch(`${process.env.LLM_SERVICE_URL}/api/service`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                raw: {
-                    ...context,
-                    related_documents: rag.documents,
-                },
-                role: req.body?.role,
-            }),
-        })
-
-        const body = await response.json().catch(() => null)
-        if (!response.ok) {
-            const detail = body?.detail || body?.error || `LLM service returned ${response.status}`
-            return res.status(502).json({ error: detail })
-        }
-
-        const result = {
-            ...body,
-            context: {
-                matchId: context.match.id,
-                result: context.result,
-                eventsCount: context.events.length,
-            },
-            rag: {
-                enabled: rag.enabled,
-                documents: rag.documents,
-            },
-        }
-
-        try {
-            await indexKnowledge({
-                id: context.match.id,
-                text: contextText,
-                payload: {
-                    entity_type: 'match',
-                    entity_id: context.match.id,
-                    season_id: context.match.season_id,
-                    source: 'postgresql',
-                },
-            })
-
-            if (typeof body?.result === 'string' && body.result.trim()) {
-                await indexKnowledge({
-                    text: body.result,
-                    payload: {
-                        entity_type: 'match_analysis',
-                        entity_id: context.match.id,
-                        season_id: context.match.season_id,
-                        source: 'llm',
-                    },
-                })
-            }
-        } catch (error) {
-            console.error(`[matches/analyze] RAG indexing failed: ${error.message}`)
-            result.rag.indexed = false
-        }
-
-        res.json(result)
+        res.json(await runMatchAnalysis(req.params.id, { role: req.body?.role }))
     } catch (error) {
         console.error(`[matches/analyze] ${error.message}`)
         res.status(error.statusCode || 502).json({ error: error.message })
