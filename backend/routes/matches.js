@@ -84,7 +84,9 @@ router.delete('/:id/events/:eventId', async(req, res) => {
 
 router.post('/:id/analyze', async(req, res) => {
     try {
-        res.json(await runMatchAnalysis(req.params.id, { role: req.body?.role }))
+        res.json(await runMatchAnalysis(req.params.id, { role: req.body?.role,
+          task: req.body?.task || 'match-analysis',
+         }))
     } catch (error) {
         console.error(`[matches/analyze] ${error.message}`)
         res.status(error.statusCode || 502).json({ error: error.message })
