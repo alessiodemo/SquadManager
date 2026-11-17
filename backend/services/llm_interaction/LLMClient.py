@@ -14,8 +14,8 @@ class LLMClient(Protocol):
         ) -> dict: ...
 
 class LangChainClient:
-    def __init__(self, chain):
-        self.chain = chain
+    def __init__(self, chains):
+        self.chains = chains
 
     def generate_report(self, raw: str | dict, role: str | None = None, task: str = "match-analysis") -> dict:
         try:
@@ -29,7 +29,10 @@ class LangChainClient:
             raise ValueError(f"Input format not valid: {e}") from e
 
         data = get_data(report) if task == "match-analysis" else get_transfer_data(report)
-        result = self.chain.invoke({
+        chain = self.chains.get(task)
+        if not chain:
+            raise ValueError(f"No chain found for task: {task}")
+        result = chain.invoke({
             "data": json.dumps(data, ensure_ascii=False, indent=2),
         })
 

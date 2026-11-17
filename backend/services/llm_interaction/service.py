@@ -10,8 +10,11 @@ app = FastAPI()
 
 #llm = FakeListChatModel(responses=["[FAKE] risposta di prova"])
 llm = get_llm()
-chain = build_chain(llm)
-client = LangChainClient(chain)
+chains = {
+    "match-analysis": build_chain(llm, task="match-analysis"),
+    "transfer-advice": build_chain(llm, task="transfer-advice")
+}
+client = LangChainClient(chains)
 embeddings = get_embeddings()
 
 class EmbeddingRequest(BaseModel):
