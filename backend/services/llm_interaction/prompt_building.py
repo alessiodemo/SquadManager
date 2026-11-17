@@ -2,7 +2,7 @@ import json
 
 from constants import *
 from langchain_core.prompts import ChatPromptTemplate
-from parameters_validation import MatchReport
+from parameters_validation import MatchReport, TransferReport
 
 def get_data(report: MatchReport) -> list[dict]:
     data = {
@@ -17,6 +17,13 @@ def get_data(report: MatchReport) -> list[dict]:
             "related_documents": report.related_documents,
         }
     return data
+
+def get_transfer_data(report: TransferReport) -> dict:
+    return {
+        "transfer": report.transfer.model_dump(mode="json"),
+        "player": report.player,
+        "related_documents": report.related_documents,
+    }
 
 def build_prompt(parser) -> ChatPromptTemplate:
     

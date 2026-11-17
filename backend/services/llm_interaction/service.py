@@ -20,7 +20,11 @@ class EmbeddingRequest(BaseModel):
 @app.post("/api/service")
 def run_service(data: ServiceRequest):
     try:
-        result = client.generate_report(data.raw, data.role)
+        result = client.generate_report(
+            data.raw, 
+            data.role,
+            data.task,
+        )
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
     except Exception as error:
