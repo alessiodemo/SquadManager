@@ -1,25 +1,36 @@
 from typing import Protocol
-from parameters_validation import MatchReport
+from parameters_validation import MatchReport, TransferReport
 from pydantic import ValidationError
-from prompt_building import get_data
+from prompt_building import get_data, get_transfer_data
 import json
  
 
 class LLMClient(Protocol):
-    def generate_report(self, raw: str | dict, role: str | None = None) -> dict: ...
+    def generate_report(
+            self,
+            raw: str | dict,
+            role: str | None = None,
+            task: str = "match-analysis",
+        ) -> dict: ...
 
 class LangChainClient:
     def __init__(self, chain):
         self.chain = chain
 
-    def generate_report(self, raw: str | dict, role: str | None = None) -> dict:
+    def generate_report(self, raw: str | dict, role: str | None = None, task: str = "match-analysis") -> dict:
         try:
-            report = (MatchReport.model_validate_json(raw) if isinstance(raw, str) else MatchReport.model_validate(raw))
+            payload = json.loads(raw) if isinstance(raw, str) else raw
+            report = (
+                MatchReport.model_validate(payload)
+                if task == "match-analysis"
+                else TransferReport.model_validate(payload)
+            )
         except ValidationError as e:
             raise ValueError(f"Input format not valid: {e}") from e
 
+        data = get_data(report) if task == "match-analysis" else get_transfer_data(report)
         result = self.chain.invoke({
-            "data": json.dumps(get_data(report), ensure_ascii=False, indent=2),
+            "data": json.dumps(data, ensure_ascii=False, indent=2),
         })
 
         return result.model_dump()

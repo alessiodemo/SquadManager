@@ -33,7 +33,23 @@ class MatchReport(BaseModel):
             raise ValueError(f"Result={self.result} is not coherent with the score {gf}-{ga}")
         return self
 
+class Transfer(BaseModel):
+    id: UUID
+    player_id: UUID | None = None
+    season_id: UUID
+    type: Literal["in", "out"]
+    transfer_date: datetime
+    fee: float | None = None
+    club: str | None = None
+    notes: str | None = None
+
+class TransferReport(BaseModel):
+    transfer: Transfer
+    player: dict = Field(default_factory=dict)
+    related_documents: list[dict] = Field(default_factory=list)
+
 class ServiceRequest(BaseModel):
+    task: Literal["match-analysis", "transfer-advice"] = "match-analysis"
     raw: str | dict
     role: str | None = None
 
