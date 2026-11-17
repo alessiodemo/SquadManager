@@ -25,11 +25,17 @@ def get_transfer_data(report: TransferReport) -> dict:
         "related_documents": report.related_documents,
     }
 
-def build_prompt(parser) -> ChatPromptTemplate:
-    
+def build_prompt(parser, task="match-analysis") -> ChatPromptTemplate:
+    if task == "match-analysis":
+        system_prompt = SYSTEM_PROMPT
+        user_prompt = USER_PROMPT_TEMPLATE
+    else:
+        system_prompt = TRANSFER_SYSTEM_PROMPT
+        user_prompt = TRANSFER_USER_PROMPT_TEMPLATE
+
     return ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_PROMPT),
-        ("user", USER_PROMPT_TEMPLATE),
+        ("system", system_prompt),
+        ("user", user_prompt),
     ]).partial(
         format_instructions=parser.get_format_instructions()
     )
