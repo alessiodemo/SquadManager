@@ -87,16 +87,35 @@ export async function runTransferAdvice(
   { role } = {},
 ) {
   const context = await getTransferContext(transferId)
-  const agent = selectAgent('transfer-advisor')
+  const contextText = JSON.stringify(context)
 
-  const rag = {
+  let rag = {
     enabled: false,
     documents: [],
   }
 
-  return agent.run({ 
-    context,
-    rag,
-    role,
-  })
+  try {
+    rag = await searchKnowledge({
+      text: contextText,
+      seasonId: context.transfer.season_id,
+    })
+  } catch (error) {
+    console.error(`[orchestrator/transfer-advice] RAG search failed: ${error.message}`)
+  }
+
+  const agent = selectAgent('transfer-advice')
+
+  const body = await agent.run({ context, rag, role })
+
+  return {
+    ...body,
+    context: {
+      transferId: context.transfer.id,
+      seasonId: context.transfer.season_id,
+    },
+    rag: {
+      enabled: rag.enabled,
+      documents: rag.documents,
+    },
+  }
 }
