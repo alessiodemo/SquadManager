@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: spring
+spec:
+  replicas: {{ .Values.replicas.spring }}
+  selector:
+    matchLabels:
+      app: spring
+  template:
+    metadata:
+      labels:
+        app: spring
+    spec:
+      containers:
+        - name: spring
+          image: "{{ .Values.images.spring.repository }}:{{ .Values.images.spring.tag }}"
+          imagePullPolicy: {{ .Values.images.spring.pullPolicy }}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres-svc:5432/squad_manager"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: squadmanager-config
+                  key: POSTGRES_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: squadmanager-secret
+                  key: POSTGRES_PASSWORD
+          resources:
+            requests:
+              cpu: {{ .Values.resources.spring.requests.cpu }}
+              memory: {{ .Values.resources.spring.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.spring.limits.cpu }}
+              memory: {{ .Values.resources.spring.limits.memory }}
+          startupProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-svc
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: spring
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP

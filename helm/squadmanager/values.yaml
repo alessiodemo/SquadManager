@@ -13,6 +13,10 @@ images:
     repository: squadmanager/llm-service
     tag: "1.0.0"
     pullPolicy: Never
+  spring:
+    repository: squadmanager/spring
+    tag: "1.0.0"
+    pullPolicy: Never
   postgres:
     repository: postgres
     tag: "15"
@@ -22,6 +26,7 @@ replicas:
   frontend: 2
   backend: 2
   llm: 1
+  spring: 1
 
 resources:
   frontend:
@@ -45,6 +50,13 @@ resources:
     limits:
       cpu: "1000m"
       memory: "1Gi"
+  spring:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
   postgres:
     requests:
       cpu: "250m"
