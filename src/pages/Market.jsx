@@ -13,8 +13,9 @@ import {
   UserPlus,
   Shield,
   HelpCircle,
+  Sparkles,
 } from 'lucide-react'
-import { getTransfers, upsertTransfer, deleteTransfer } from '../api/transfers'
+import { getTransfers, upsertTransfer, deleteTransfer, adviseTransfer } from '../api/transfers'
 import { getSquadWithStats } from '../api/players'
 import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -24,6 +25,7 @@ import { useToast } from '../components/ToastProvider'
 import { useSeason } from '../context/seasonContext'
 import { useTeam } from '../context/teamContext'
 import { getErrorMessage } from '../lib/errors'
+import AIResult from '../components/AIResult'
 
 const emptyForm = {
   playerMode: 'existing', // 'existing' | 'new'
@@ -65,6 +67,10 @@ export default function Market() {
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('date-desc') // 'date-desc' | 'date-asc' | 'fee-desc'
   const [deleteTransferId, setDeleteTransferId] = useState(null)
+  const [adviceTransfer, setAdviceTransfer] = useState(null)
+  const [advice, setAdvice] = useState(null)
+  const [adviceLoading, setAdviceLoading] = useState(false)
+  const [showAdviceModal, setShowAdviceModal] = useState(false)
   const { showToast } = useToast()
 
   const { seasonId, selectedSeason } = useSeason()
@@ -190,6 +196,23 @@ export default function Market() {
       showToast(getErrorMessage(e, 'Unable to delete the transfer.'), { tone: 'error' })
     } finally {
       setDeleteTransferId(null)
+    }
+  }
+
+  async function handleAdvice(transfer) {
+    setAdviceTransfer(transfer)
+    setAdvice(null)
+    setAdviceLoading(true)
+    setShowAdviceModal(true)
+
+    try {
+      const data = await adviseTransfer(transfer.id)
+      setAdvice(data)
+    } catch (error) {
+      showToast(getErrorMessage(error, 'Unable to generate transfer advice.'), { tone: 'error' })
+      setShowAdviceModal(false)
+    } finally {
+      setAdviceLoading(false)
     }
   }
 
@@ -501,6 +524,14 @@ export default function Market() {
 
                   <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100">
                     <button
+                      onClick={() => handleAdvice(t)}
+                      title="Transfer AI advice"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-sofa-blue/10 hover:bg-sofa-blue/20 border border-sofa-blue/30 text-sofa-blueLight text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>AI advice</span>
+                    </button>
+                    <button
                       onClick={() => openEdit(t)}
                       title="Edit"
                       className="p-1.5 rounded-lg bg-sofa-bg hover:bg-sofa-border border border-sofa-border text-sofa-muted hover:text-white transition-colors cursor-pointer"
@@ -784,6 +815,49 @@ export default function Market() {
               </button>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {showAdviceModal && (
+        <Modal
+          title={`AI transfer advice — ${adviceTransfer?.name || adviceTransfer?.players?.name || 'Player'} ${adviceTransfer?.surname || adviceTransfer?.players?.surname || ''}`.trim()}
+          onClose={() => {
+            setShowAdviceModal(false)
+            setAdvice(null)
+            setAdviceTransfer(null)
+          }}
+          maxWidth="max-w-2xl"
+        >
+          {adviceLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 space-y-4">
+              <div className="w-10 h-10 border-2 border-sofa-blue border-t-transparent rounded-full animate-spin" />
+              <div className="text-center">
+                <p className="text-sm font-bold text-white">Generating transfer advice...</p>
+                <p className="text-xs text-sofa-muted mt-1">The assistant is evaluating the transfer context</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="bg-[#0b1320] border border-sofa-border rounded-xl p-5 max-h-[60vh] overflow-y-auto">
+                {advice?.result && (
+                  <AIResult result={advice.result} rag={advice.rag} />
+                )}
+              </div>
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAdviceModal(false)
+                    setAdvice(null)
+                    setAdviceTransfer(null)
+                  }}
+                  className="px-5 py-2 bg-sofa-card hover:bg-sofa-cardHover border border-sofa-border text-white text-xs font-bold rounded-xl transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
         </Modal>
       )}
 

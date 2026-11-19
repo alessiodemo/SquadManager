@@ -11,6 +11,7 @@ import { useTeam } from '../context/teamContext'
 import MatchVenueIcon from '../components/MatchVenueIcon'
 import { getErrorMessage } from '../lib/errors'
 import TeamLogo from '../components/TeamLogo'
+import AIResult from '../components/AIResult'
 
 function matchResult(m) {
   if (m.goals_for == null) return null
@@ -489,32 +490,7 @@ export default function Matches() {
               <div className="bg-[#0b1320] border border-sofa-border rounded-xl p-5 max-h-[60vh] overflow-y-auto">
                 <div className="prose prose-invert prose-sm max-w-none text-slate-200 text-xs sm:text-sm whitespace-pre-wrap leading-relaxed font-sans">
                   {context?.result && (
-                    <div className="space-y-4">
-                      <section>
-                        <h3 className="font-bold text-white">Summary</h3>
-                        <p className="text-sm text-slate-300">
-                          {context.result.summary}
-                        </p>
-                      </section>
-
-                      <section>
-                        <h3 className="font-bold text-white">Key factors</h3>
-                        <ul className="list-disc pl-5 text-sm text-slate-300">
-                          {context.result.key_factors.map((factor) => (
-                            <li key={factor}>{factor}</li>
-                          ))}
-                        </ul>
-                      </section>
-
-                      <section>
-                        <h3 className="font-bold text-white">Recommendations</h3>
-                        <ul className="list-disc pl-5 text-sm text-slate-300">
-                          {context.result.recommendations.map((item) => (
-                            <li key={item}>{item}</li>
-                          ))}
-                        </ul>
-                      </section>
-                    </div>
+                    <AIResult result={context.result} rag={context.rag} />
                   )}
                 </div>
               </div>

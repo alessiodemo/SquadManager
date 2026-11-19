@@ -21,3 +21,10 @@ export async function upsertTransfer(transfer) {
 export async function deleteTransfer(id) {
   return apiFetch(`/api/transfers/${id}`, { method: 'DELETE' })
 }
+
+export async function adviseTransfer(id) {
+  return apiFetch(`/api/transfers/${id}/advice`, {
+    method: 'POST',
+    body: JSON.stringify({ task: 'transfer-advice' }),
+  })
+}

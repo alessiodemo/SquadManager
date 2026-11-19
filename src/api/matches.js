@@ -42,6 +42,7 @@ export async function analyzeMatch(matchId) {
     headers: {
       "Content-Type": "application/json"
     },
+    body: JSON.stringify({ task: 'match-analysis' }),
   })
 }
 
