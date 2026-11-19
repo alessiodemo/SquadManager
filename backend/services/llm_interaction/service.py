@@ -12,6 +12,16 @@ llm = get_llm()
 chain = build_chain(llm)
 client = LangChainClient(chain)
 
+@app.get("/health/live")
+def liveness():
+    return {"status": "ok"}
+
+@app.get("/health/ready")
+def readiness():
+    if llm is None:
+        raise HTTPException(status_code=503, detail="LLM client is unavailable")
+    return {"status": "ok", "llm": "configured"}
+
 @app.post("/api/service")
 def run_service(data: ServiceRequest):
     try:
