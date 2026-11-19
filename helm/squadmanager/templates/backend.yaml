@@ -27,11 +27,31 @@ spec:
           ports:
             - containerPort: 3000
           env:
-            - name: DATABASE_URL
+            - name: POSTGRES_HOST
               valueFrom:
                 configMapKeyRef:
                   name: squadmanager-config
-                  key: DATABASE_URL
+                  key: POSTGRES_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: squadmanager-config
+                  key: POSTGRES_PORT
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: squadmanager-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: squadmanager-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: squadmanager-secret
+                  key: POSTGRES_PASSWORD
             - name: LLM_SERVICE_URL
               valueFrom:
                 configMapKeyRef:

@@ -4,7 +4,8 @@ metadata:
   name: squadmanager-config
   namespace: {{ .Values.namespace }}
 data:
-  DATABASE_URL: "postgres://postgres:{{ .Values.secrets.postgresPassword }}@postgres-svc:5432/squad_manager"
+  POSTGRES_HOST: "postgres-svc"
+  POSTGRES_PORT: "5432"
   LLM_SERVICE_URL: "http://llm-service:8000"
   PORT: "3000"
   POSTGRES_DB: "squad_manager"

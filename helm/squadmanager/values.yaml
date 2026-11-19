@@ -60,10 +60,3 @@ hpa:
   cpuUtilization: 60
   memoryUtilization: 70
 
-# Credenziali e variabili sensibili
-# In produzione vengono passate da linea di comando con --set o da secrets manager
-secrets:
-  postgresPassword: "password"
-  footballDataToken: SUxfVFVPX1RPS0VOX1FVSQ==
-  openrouterApiKey: c2stb3IteHh4eC4uLg==
-  llmProvider: "openai/gpt-4o-mini"
